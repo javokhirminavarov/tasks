@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - TaskFlow{% endblock %}
+
+{% block content %}
+<!-- Greeting Section -->
+<div class="px-4 pt-6 pb-2">
+<p class="text-[#606e8a] dark:text-gray-400 text-sm font-medium">{{ current_date }}</p>
+<h1 class="text-[#111318] dark:text-white tracking-tight text-[32px] font-bold leading-tight">Welcome, {{ current_user.name }}</h1>
+</div>
+<!-- Overview Stats Carousel -->
+<div class="flex overflow-x-auto gap-4 p-4 no-scrollbar snap-x">
+<!-- Card 1 -->
+<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-white dark:bg-[#1A2230] shadow-sm border border-gray-100 dark:border-gray-800 snap-center">
+<div class="flex items-center justify-between">
+<div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-primary">
+<span class="material-symbols-outlined text-[20px]">assignment</span>
+</div>
+</div>
+<div>
+<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Active Tasks</p>
+<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.active_tasks }}</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-white dark:bg-[#1A2230] shadow-sm border border-gray-100 dark:border-gray-800 snap-center">
+<div class="flex items-center justify-between">
+<div class="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+</div>
+</div>
+<div>
+<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Active Projects</p>
+<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.active_projects }}</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-white dark:bg-[#1A2230] shadow-sm border border-gray-100 dark:border-gray-800 snap-center">
+<div class="flex items-center justify-between">
+<div class="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-600">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+</div>
+<div>
+<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Completed</p>
+<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.completed_tasks }}</p>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-white dark:bg-[#1A2230] shadow-sm border border-gray-100 dark:border-gray-800 snap-center">
+<div class="flex items-center justify-between">
+<div class="p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-orange-600">
+<span class="material-symbols-outlined text-[20px]">alarm</span>
+</div>
+</div>
+<div>
+<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Deadlines</p>
+<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.deadlines_today }} Today</p>
+</div>
+</div>
+</div>
+<!-- Team Workload Section -->
+{% if current_user.role in ['Head', 'Deputy'] %}
+<div class="mt-2">
+<div class="flex items-center justify-between px-4 pb-2 pt-2">
+<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Team Workload</h3>
+<a href="{{ url_for('team_workload') }}" class="text-primary text-sm font-semibold hover:opacity-80">See All</a>
+</div>
+<div class="flex flex-col gap-3 px-4 mt-2">
+{% for staff in team_workload %}
+<div class="flex items-center gap-4 bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold">
+{{ staff.name[0] }}
+</div>
+<div class="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-white dark:bg-[#1A2230]">
+<div class="size-3 rounded-full
+{% if staff.task_count <= 3 %}bg-green-500
+{% elif staff.task_count >= 7 %}bg-red-500
+{% else %}bg-yellow-500{% endif %}"></div>
+</div>
+</div>
+<div class="flex flex-col flex-1">
+<p class="text-[#111318] dark:text-white text-base font-semibold leading-normal line-clamp-1">{{ staff.name }}</p>
+<p class="text-[#606e8a] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-1">{{ staff.unit_name or 'No Unit' }}</p>
+</div>
+<div class="flex items-center gap-2">
+{% if staff.overload_flag %}
+<span class="material-symbols-outlined text-red-500 text-[20px]">flag</span>
+{% endif %}
+<span class="px-3 py-1 rounded-full
+{% if staff.task_count <= 3 %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300
+{% elif staff.task_count >= 7 %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300
+{% else %}bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300{% endif %}
+text-xs font-bold">{{ staff.task_count }} Tasks</span>
+</div>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+<!-- Unit Performance Section -->
+{% if current_user.role in ['Head', 'Deputy'] %}
+<div class="mt-6">
+<div class="flex items-center justify-between px-4 pb-2 pt-2">
+<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Unit Performance</h3>
+<a href="{{ url_for('units_performance') }}" class="text-primary text-sm font-semibold hover:opacity-80">See All</a>
+</div>
+<div class="flex flex-col gap-3 px-4 mt-2">
+{% for unit in unit_performance %}
+<div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex justify-between items-center mb-2">
+<div class="flex items-center gap-2">
+<span class="bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-lg">
+<span class="material-symbols-outlined text-primary text-[18px]">group</span>
+</span>
+<span class="font-semibold text-sm dark:text-white">{{ unit.name }}</span>
+</div>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ unit.total_tasks }} Tasks</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: {{ unit.completion_rate }}%"></div>
+</div>
+<span class="text-xs font-bold text-[#111318] dark:text-white w-8 text-right">{{ unit.completion_rate }}%</span>
+</div>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+<!-- Active Projects Section -->
+<div class="mt-6 mb-8">
+<div class="flex items-center justify-between px-4 pb-2 pt-2">
+<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Active Projects</h3>
+<a href="{{ url_for('projects_list') }}" class="text-primary text-sm font-semibold hover:opacity-80">See All</a>
+</div>
+<div class="grid grid-cols-1 gap-3 px-4 mt-2">
+{% for project in active_projects %}
+<a href="{{ url_for('project_detail', project_id=project.id) }}" class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 hover:border-primary transition-colors block">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h4 class="text-sm font-bold text-[#111318] dark:text-white">{{ project.name }}</h4>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ project.description|truncate(30) if project.description else 'No description' }}</p>
+</div>
+<div class="flex -space-x-2">
+{% for assignee in project.assignees[:3] %}
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-[#1A2230] bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[8px] font-bold text-gray-600 dark:text-gray-300">
+{{ assignee.name[0] }}
+</div>
+{% endfor %}
+{% if project.assignees|length > 3 %}
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-[#1A2230] bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-[8px] font-bold text-gray-600 dark:text-gray-300">+{{ project.assignees|length - 3 }}</div>
+{% endif %}
+</div>
+</div>
+<div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mb-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: {{ project.completion_rate }}%"></div>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="text-gray-500 dark:text-gray-400">{{ project.deadline_text }}</span>
+<span class="font-bold text-primary">{{ project.completion_rate }}%</span>
+</div>
+</a>
+{% endfor %}
+{% if not active_projects %}
+<div class="bg-white dark:bg-[#1A2230] p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
+<p class="text-gray-500 dark:text-gray-400">No active projects</p>
+</div>
+{% endif %}
+</div>
+</div>
+{% endblock %}
