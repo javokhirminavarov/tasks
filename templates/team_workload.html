@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Team Workload - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="px-4 pt-6 pb-8">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{{ url_for('dashboard') }}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            <span class="material-symbols-outlined text-gray-600 dark:text-gray-400">arrow_back</span>
+        </a>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Team Workload</h1>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="flex gap-3 mb-6 overflow-x-auto no-scrollbar">
+        <div class="flex-1 min-w-[100px] bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ total_staff }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Total Staff</p>
+        </div>
+        <div class="flex-1 min-w-[100px] bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
+            <p class="text-2xl font-bold text-red-600">{{ overloaded_count }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Overloaded</p>
+        </div>
+        <div class="flex-1 min-w-[100px] bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
+            <p class="text-2xl font-bold text-orange-600">{{ overdue_count }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">With Overdue</p>
+        </div>
+    </div>
+
+    <!-- Staff Cards -->
+    <div class="flex flex-col gap-3">
+        {% for member in staff %}
+        <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="relative">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br
+                        {% if member.role == 'HeadOfUnit' %}from-blue-400 to-blue-600
+                        {% elif member.role == 'Staff' %}from-green-400 to-teal-600
+                        {% else %}from-orange-400 to-pink-500{% endif %}
+                        flex items-center justify-center text-white font-bold text-lg shadow-sm border-2 border-white dark:border-gray-700">
+                        {{ member.name[0] }}
+                    </div>
+                    {% if member.overload_flag %}
+                    <div class="absolute -top-1 -right-1">
+                        <span class="material-symbols-outlined text-red-500 text-[16px]">flag</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ member.name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ member.role }}{% if member.role == 'HeadOfUnit' %} (Head of Unit){% endif %} &middot; {{ member.unit_name or 'No Unit' }}</p>
+                </div>
+            </div>
+
+            <!-- Task Breakdown -->
+            <div class="flex gap-2 flex-wrap">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                    {{ member.active_tasks }} Active
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                    {{ member.completed_tasks }} Done
+                </span>
+                {% if member.overdue_tasks and member.overdue_tasks > 0 %}
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                    {{ member.overdue_tasks }} Overdue
+                </span>
+                {% endif %}
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                    {{ member.total_tasks }} Total
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if not staff %}
+        <div class="bg-white dark:bg-[#1A2230] p-12 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
+            <span class="material-symbols-outlined text-[48px] text-gray-300 dark:text-gray-600 mb-2">group_off</span>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">No staff members found</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -31,7 +31,6 @@ task-management/
 │   ├── base.html         # Base template with navigation
 │   ├── dashboard.html
 │   ├── tasks/
-│   ├── projects/
 │   ├── admin/
 │   └── reports/
 └── README.md
@@ -61,8 +60,7 @@ CREATE TABLE tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     description TEXT,
-    type TEXT NOT NULL, -- Project, Ad-hoc
-    project_id INTEGER,
+    type TEXT NOT NULL DEFAULT 'Ad-hoc', -- Always Ad-hoc
     priority TEXT NOT NULL, -- Urgent, High, Normal, Low
     status TEXT NOT NULL, -- Not Started, In Progress, Pending Approval, Completed
     requester_id INTEGER NOT NULL,
@@ -73,7 +71,6 @@ CREATE TABLE tasks (
     completion_note TEXT,
     overload_flag BOOLEAN DEFAULT 0,
     overload_timestamp TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id),
     FOREIGN KEY (requester_id) REFERENCES users(id),
     FOREIGN KEY (assignor_id) REFERENCES users(id)
 );
@@ -85,18 +82,6 @@ CREATE TABLE task_assignees (
     user_id INTEGER NOT NULL,
     FOREIGN KEY (task_id) REFERENCES tasks(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
--- Projects table
-CREATE TABLE projects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    status TEXT DEFAULT 'Active', -- Active, Completed
-    deadline DATE,
-    created_by INTEGER NOT NULL,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
 -- Comments table
@@ -115,7 +100,7 @@ CREATE TABLE activity_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     action TEXT NOT NULL,
-    entity_type TEXT, -- Task, Project, User
+    entity_type TEXT, -- Task, User
     entity_id INTEGER,
     details TEXT,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -125,8 +110,8 @@ Permission Implementation
 Implement role-based access control based on this matrix:
 
 Admin: User/unit management only, no task access
-Head/Deputy: Full access to all tasks and projects
-Head of Unit: Access to unit tasks/projects only
+Head/Deputy: Full access to all tasks
+Head of Unit: Access to unit tasks only
 Staff/Intern: Own tasks only, can create tasks for approval
 
 Check permissions on every route using decorators.
@@ -156,8 +141,6 @@ Create a simple script to populate test data:
 4 Units with 1 Head of Unit each
 5-10 Staff members distributed across units
 10-15 sample tasks with various statuses
-3-5 sample projects
-
 Development Phases
 Phase 1: Foundation
 
@@ -179,19 +162,13 @@ All Tasks page (Head/Deputy)
 Unit Tasks page (Head of Unit)
 Filtering and sorting
 
-Phase 4: Projects
-
-Project listing and detail
-Project creation
-Link tasks to projects
-
-Phase 5: Admin & Reports
+Phase 4: Admin & Reports
 
 User management
 Unit management
 Basic reports
 
-Phase 6: Enhancement
+Phase 5: Enhancement
 
 Comments
 Activity log

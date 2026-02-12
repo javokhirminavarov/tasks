@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="px-4 pt-6 pb-8 max-w-lg mx-auto">
+    <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight mb-6">Settings</h1>
+
+    <!-- Account Info (read-only) -->
+    <div class="bg-white dark:bg-[#1A2230] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 mb-6">
+        <h2 class="text-sm font-bold text-gray-900 dark:text-white mb-4">Account Information</h2>
+        <div class="flex flex-col gap-3">
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Name</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ profile.name }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Role</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ profile.role }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Unit</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ profile.unit_name or 'None' }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Telegram ID</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white font-mono">{{ profile.telegram_id }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Info -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-5">
+        <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-blue-500 text-[20px] mt-0.5">info</span>
+            <div>
+                <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Authenticated via Telegram</p>
+                <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">Your account is linked to your Telegram account. No password is needed - just open the app through Telegram.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

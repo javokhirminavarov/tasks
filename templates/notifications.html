@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="px-4 pt-6 pb-8">
+    <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight mb-4">Notifications</h1>
+
+    {% if notifications %}
+    <div class="flex flex-col gap-2">
+        {% for item in notifications %}
+        <div class="flex items-start gap-3 bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <!-- Icon -->
+            <div class="shrink-0 p-2 rounded-lg
+                {% if 'Created' in item.action or 'Submitted' in item.action %}bg-green-50 dark:bg-green-900/20 text-green-600
+                {% elif 'Updated' in item.action or 'Changed' in item.action %}bg-blue-50 dark:bg-blue-900/20 text-primary
+                {% elif 'Deleted' in item.action or 'Deactivated' in item.action %}bg-red-50 dark:bg-red-900/20 text-red-600
+                {% elif 'comment' in item.action|lower %}bg-purple-50 dark:bg-purple-900/20 text-purple-600
+                {% elif 'Reset' in item.action or 'Activated' in item.action %}bg-orange-50 dark:bg-orange-900/20 text-orange-600
+                {% else %}bg-gray-50 dark:bg-gray-800 text-gray-500{% endif %}">
+                <span class="material-symbols-outlined text-[18px]">
+                    {% if 'Created' in item.action or 'Submitted' in item.action %}add_circle
+                    {% elif 'Updated' in item.action %}edit
+                    {% elif 'Changed status' in item.action %}sync
+                    {% elif 'Deleted' in item.action %}delete
+                    {% elif 'comment' in item.action|lower %}chat_bubble
+                    {% elif 'Reset' in item.action %}lock_reset
+                    {% elif 'Activated' in item.action %}check_circle
+                    {% elif 'Deactivated' in item.action %}cancel
+                    {% else %}notifications{% endif %}
+                </span>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+                <p class="text-sm text-gray-900 dark:text-white">
+                    <span class="font-semibold">{{ item.user_name }}</span>
+                    <span class="text-gray-600 dark:text-gray-400">{{ item.action|lower }}</span>
+                    {% if item.details %}
+                    <span class="font-medium">{{ item.details }}</span>
+                    {% endif %}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ item.timestamp|timeago }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white dark:bg-[#1A2230] p-12 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
+        <span class="material-symbols-outlined text-[48px] text-gray-300 dark:text-gray-600 mb-2">notifications_off</span>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">No notifications yet</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

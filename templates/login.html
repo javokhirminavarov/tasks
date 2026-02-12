@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>TaskFlow</title>
+
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0f5af0",
+                        "background-light": "#f5f6f8",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body class="bg-background-light min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-sm">
+        <!-- Logo -->
+        <div class="flex flex-col items-center mb-8">
+            <div class="flex items-center justify-center size-14 rounded-xl bg-primary/10 text-primary mb-4">
+                <span class="material-symbols-outlined text-[32px]">dashboard</span>
+            </div>
+            <h1 class="text-2xl font-bold text-[#111318] tracking-tight">TaskFlow</h1>
+            <p id="statusText" class="text-sm text-[#606e8a] mt-1">Authenticating...</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+            <div class="inline-flex items-center justify-center size-12 rounded-full bg-primary/10 text-primary mb-4">
+                <span class="material-symbols-outlined text-[28px] spinner">progress_activity</span>
+            </div>
+            <p class="text-sm text-gray-500">Verifying your Telegram account...</p>
+        </div>
+
+        <!-- Error State (hidden by default) -->
+        <div id="errorState" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+            <div class="inline-flex items-center justify-center size-12 rounded-full bg-red-50 text-red-500 mb-4">
+                <span class="material-symbols-outlined text-[28px]">error</span>
+            </div>
+            <p id="errorMessage" class="text-sm text-gray-700 font-medium mb-2">Authentication failed</p>
+            <p id="errorDetail" class="text-xs text-gray-400"></p>
+        </div>
+
+        <!-- Not Telegram State (hidden by default) -->
+        <div id="notTelegramState" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+            <div class="inline-flex items-center justify-center size-12 rounded-full bg-blue-50 text-blue-500 mb-4">
+                <span class="material-symbols-outlined text-[28px]">phone_iphone</span>
+            </div>
+            <p class="text-sm text-gray-700 font-medium mb-2">Open via Telegram</p>
+            <p class="text-xs text-gray-400">This app can only be accessed through the Telegram bot. Open the bot and tap the app button to continue.</p>
+        </div>
+
+        <p class="text-center text-xs text-[#606e8a] mt-6">Task Management System</p>
+    </div>
+
+    <script>
+        const tg = window.Telegram && window.Telegram.WebApp;
+
+        function showError(message, detail) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('statusText').textContent = 'Access Denied';
+            document.getElementById('errorMessage').textContent = message;
+            if (detail) document.getElementById('errorDetail').textContent = detail;
+        }
+
+        function showNotTelegram() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('notTelegramState').classList.remove('hidden');
+            document.getElementById('statusText').textContent = 'Telegram Required';
+        }
+
+        if (tg && tg.initData) {
+            // Running inside Telegram Mini App - authenticate
+            tg.ready();
+            tg.expand();
+
+            fetch('/auth/telegram', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData: tg.initData })
+            })
+            .then(resp => resp.json().then(data => ({ status: resp.status, data })))
+            .then(({ status, data }) => {
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    showError(data.error || 'Authentication failed');
+                }
+            })
+            .catch(() => {
+                showError('Connection error', 'Could not reach the server. Please try again.');
+            });
+        } else {
+            // Not running inside Telegram
+            showNotTelegram();
+        }
+    </script>
+</body>
+</html>

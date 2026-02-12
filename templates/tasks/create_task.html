@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Task' if task else 'Create Task' }} - TaskFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .priority-pill input:checked + div { /* handled by peer-checked Tailwind classes */ }
+    .assignee-checkbox:checked + label { opacity: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark">
+
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 flex items-center justify-between bg-white/90 dark:bg-background-dark/90 backdrop-blur-md p-4 shrink-0 border-b border-slate-100 dark:border-slate-800">
+    <a href="{{ url_for('tasks_list') }}" class="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-900 dark:text-white">
+        <span class="material-symbols-outlined text-[24px]">close</span>
+    </a>
+    <h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">
+        {{ 'Edit Task' if task else 'Create Task' }}
+    </h2>
+    <div class="size-10"></div>
+</header>
+
+<!-- Main Scrollable Form Area -->
+<main class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-24">
+    <form id="task-form" method="POST"
+          action="{{ url_for('task_edit', task_id=task.id) if task else url_for('task_create') }}">
+
+        <!-- Title Input -->
+        <div class="px-4 pt-6 pb-2">
+            <input name="title" type="text"
+                   class="w-full bg-transparent border-none p-0 text-3xl font-bold placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:ring-0 text-slate-900 dark:text-white leading-tight"
+                   placeholder="Task Name"
+                   value="{{ (form.title if form else task.title) if (form or task) else '' }}"/>
+        </div>
+
+        <input type="hidden" name="task_type" value="Ad-hoc"/>
+
+        <!-- Form Fields Container -->
+        <div class="flex flex-col gap-6 px-4">
+
+            <!-- Priority Selector -->
+            <div class="flex flex-col gap-3">
+                <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Priority</label>
+                {% set current_priority = (form.get('priority', 'Normal') if form else (task.priority if task else 'Normal')) %}
+                <div class="flex gap-3 flex-wrap">
+                    <label class="cursor-pointer priority-pill">
+                        <input class="peer sr-only" name="priority" type="radio" value="Urgent" {{ 'checked' if current_priority == 'Urgent' else '' }}/>
+                        <div class="rounded-full px-4 py-2 text-sm font-medium bg-[#f0f1f5] dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 border border-transparent peer-checked:bg-purple-100 peer-checked:text-purple-700 peer-checked:border-purple-200 dark:peer-checked:bg-purple-900/30 dark:peer-checked:text-purple-400 dark:peer-checked:border-purple-800 transition-all flex items-center gap-2">
+                            <span class="size-2 rounded-full bg-purple-500"></span> Urgent
+                        </div>
+                    </label>
+                    <label class="cursor-pointer priority-pill">
+                        <input class="peer sr-only" name="priority" type="radio" value="High" {{ 'checked' if current_priority == 'High' else '' }}/>
+                        <div class="rounded-full px-4 py-2 text-sm font-medium bg-[#f0f1f5] dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 border border-transparent peer-checked:bg-red-100 peer-checked:text-red-700 peer-checked:border-red-200 dark:peer-checked:bg-red-900/30 dark:peer-checked:text-red-400 dark:peer-checked:border-red-800 transition-all flex items-center gap-2">
+                            <span class="size-2 rounded-full bg-red-500"></span> High
+                        </div>
+                    </label>
+                    <label class="cursor-pointer priority-pill">
+                        <input class="peer sr-only" name="priority" type="radio" value="Normal" {{ 'checked' if current_priority == 'Normal' else '' }}/>
+                        <div class="rounded-full px-4 py-2 text-sm font-medium bg-[#f0f1f5] dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 border border-transparent peer-checked:bg-amber-100 peer-checked:text-amber-700 peer-checked:border-amber-200 dark:peer-checked:bg-amber-900/30 dark:peer-checked:text-amber-400 dark:peer-checked:border-amber-800 transition-all flex items-center gap-2">
+                            <span class="size-2 rounded-full bg-amber-500"></span> Normal
+                        </div>
+                    </label>
+                    <label class="cursor-pointer priority-pill">
+                        <input class="peer sr-only" name="priority" type="radio" value="Low" {{ 'checked' if current_priority == 'Low' else '' }}/>
+                        <div class="rounded-full px-4 py-2 text-sm font-medium bg-[#f0f1f5] dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 border border-transparent peer-checked:bg-green-100 peer-checked:text-green-700 peer-checked:border-green-200 dark:peer-checked:bg-green-900/30 dark:peer-checked:text-green-400 dark:peer-checked:border-green-800 transition-all flex items-center gap-2">
+                            <span class="size-2 rounded-full bg-green-500"></span> Low
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Deadline -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Deadline</label>
+                {% set current_deadline = (form.get('deadline', '') if form else (task.deadline if task else '')) %}
+                <input name="deadline" type="date"
+                       value="{{ current_deadline }}"
+                       class="w-full rounded-xl bg-[#f0f1f5] dark:bg-[#1e293b] border-none py-4 px-4 text-base text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20"/>
+            </div>
+
+            <!-- Assignees -->
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Assign To</label>
+                    <button type="button" onclick="toggleAssigneePanel()"
+                            class="text-primary text-sm font-medium flex items-center gap-1 hover:underline">
+                        <span class="material-symbols-outlined text-[18px]">person_add</span>
+                        <span id="assignee-toggle-text">Select</span>
+                    </button>
+                </div>
+
+                <!-- Selected assignees display -->
+                <div id="selected-assignees" class="flex flex-wrap gap-2">
+                    {% set selected_ids = (form.getlist('assignee_ids')|map('int')|list if form else (task.assignee_ids if task else [])) %}
+                    {% for u in users %}
+                        {% if u.id in selected_ids %}
+                        <span class="assignee-tag inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium" data-uid="{{ u.id }}">
+                            {{ u.name }}
+                        </span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Expandable checkbox panel -->
+                <div id="assignee-panel" class="hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e2736] max-h-60 overflow-y-auto">
+                    {% for u in users %}
+                    <label class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-100 dark:border-slate-700 last:border-b-0">
+                        <input type="checkbox" name="assignee_ids" value="{{ u.id }}"
+                               class="assignee-cb rounded border-slate-300 text-primary focus:ring-primary"
+                               {{ 'checked' if u.id in selected_ids else '' }}
+                               onchange="updateAssigneeTags()"/>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-slate-900 dark:text-white">{{ u.name }}</span>
+                            <span class="text-xs text-slate-500">{{ u.unit_name or 'No unit' }} &middot; {{ u.role }}</span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Description</label>
+                <textarea name="description"
+                          class="w-full h-32 rounded-xl bg-[#f0f1f5] dark:bg-[#1e293b] border-none p-4 text-base text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 resize-none placeholder:text-slate-400"
+                          placeholder="Add details, notes, or links...">{{ (form.get('description', '') if form else (task.description if task else '')) }}</textarea>
+            </div>
+
+            <!-- File Upload (disabled placeholder) -->
+            <div class="flex flex-col gap-2 pb-6">
+                <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Attachments</label>
+                <div class="w-full rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-6 flex flex-col items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+                    <div class="p-3 bg-white dark:bg-[#1e2736] rounded-full shadow-sm text-slate-400">
+                        <span class="material-symbols-outlined">cloud_upload</span>
+                    </div>
+                    <p class="text-sm font-medium text-slate-500">File upload coming soon</p>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</main>
+
+<!-- Sticky Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 z-20 max-w-md mx-auto">
+    <button type="submit" form="task-form"
+            class="w-full h-12 flex items-center justify-center rounded-xl bg-primary hover:bg-blue-600 text-white text-base font-bold shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all">
+        {{ 'Update Task' if task else 'Save Task' }}
+    </button>
+</div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleAssigneePanel() {
+    const panel = document.getElementById('assignee-panel');
+    const text = document.getElementById('assignee-toggle-text');
+    if (panel.classList.contains('hidden')) {
+        panel.classList.remove('hidden');
+        text.textContent = 'Close';
+    } else {
+        panel.classList.add('hidden');
+        text.textContent = 'Select';
+    }
+}
+
+function updateAssigneeTags() {
+    const container = document.getElementById('selected-assignees');
+    container.innerHTML = '';
+    document.querySelectorAll('.assignee-cb:checked').forEach(function(cb) {
+        const nameEl = cb.parentElement.querySelector('.text-sm.font-medium');
+        const span = document.createElement('span');
+        span.className = 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium';
+        span.textContent = nameEl.textContent;
+        container.appendChild(span);
+    });
+}
+</script>
+{% endblock %}
