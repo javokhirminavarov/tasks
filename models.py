@@ -105,6 +105,44 @@ def init_db():
     conn.close()
 
 
+def bootstrap_admin_from_env():
+    """Create an initial admin user from BOOTSTRAP_ADMIN_TELEGRAM_ID if no admin exists.
+
+    Idempotent: does nothing if any admin user is already present, or if the env
+    var is unset. Safe to call on every startup.
+    """
+    telegram_id = os.environ.get('BOOTSTRAP_ADMIN_TELEGRAM_ID', '').strip()
+    if not telegram_id:
+        return
+
+    name = os.environ.get('BOOTSTRAP_ADMIN_NAME', 'Admin').strip() or 'Admin'
+
+    conn = get_db()
+    existing_admin = conn.execute(
+        "SELECT id FROM users WHERE is_admin = 1 LIMIT 1"
+    ).fetchone()
+    if existing_admin:
+        conn.close()
+        return
+
+    existing_user = conn.execute(
+        "SELECT id FROM users WHERE telegram_id = ?", (telegram_id,)
+    ).fetchone()
+    if existing_user:
+        conn.execute(
+            "UPDATE users SET is_admin = 1, active = 1 WHERE id = ?",
+            (existing_user['id'],),
+        )
+    else:
+        conn.execute(
+            "INSERT INTO users (name, role, telegram_id, is_admin, active) "
+            "VALUES (?, 'Head', ?, 1, 1)",
+            (name, telegram_id),
+        )
+    conn.commit()
+    conn.close()
+
+
 def _row_to_dict(row):
     """Convert a sqlite3.Row to a dict for dot-notation access via Jinja."""
     if row is None:
