@@ -11,9 +11,11 @@ from models import (get_user_by_id, get_user_by_telegram_id, get_user_by_telegra
                     get_team_workload, get_unit_performance,
                     get_my_tasks, get_my_task_stats, get_overdue_count_for_filter,
                     get_task_by_id, get_assignable_users, get_verifiers_for_user,
+                    get_tasks_by_assignor,
                     create_task, update_task, update_task_status, delete_task,
                     get_task_comments, add_comment,
                     add_task_attachment, get_task_attachments, get_attachment,
+                    get_unit_reports, get_unit_employees_report,
                     log_activity, get_db, init_db,
                     get_all_users, create_user, update_user, toggle_user_active,
                     get_all_units, get_unit_by_id,
@@ -267,11 +269,11 @@ def dashboard():
         return redirect(url_for('tasks_list'))
 
     stats = get_dashboard_stats(user)
-    current_date = date.today().strftime('%A, %B %d, %Y')
 
-    # Head/Deputy: team workload + unit performance
+    # Head/Deputy: team workload + unit performance + tasks they assigned
     team = get_team_workload() if user.role in ('Head', 'Deputy') else []
     units = get_unit_performance() if user.role in ('Head', 'Deputy') else []
+    assigned_tasks = get_tasks_by_assignor(user.id, limit=10) if user.role in ('Head', 'Deputy') else []
 
     # HeadOfUnit: unit staff workload + other units summary
     unit_staff = get_unit_team_workload(user.unit_id) if user.role == 'HeadOfUnit' else []
@@ -281,9 +283,9 @@ def dashboard():
                            stats=stats,
                            team_workload=team,
                            unit_performance=units,
+                           assigned_tasks=assigned_tasks,
                            unit_staff=unit_staff,
-                           other_units=other_units,
-                           current_date=current_date)
+                           other_units=other_units)
 
 
 # --- Stub Routes (prevent url_for errors in templates) ---
@@ -840,7 +842,19 @@ def settings():
 @role_required('Head', 'Deputy')
 def reports():
     data = get_report_data()
-    return render_template('reports.html', data=data)
+    unit_reports = get_unit_reports()
+    return render_template('reports.html', data=data, unit_reports=unit_reports)
+
+
+@app.route('/reports/unit/<int:unit_id>')
+@login_required
+@role_required('Head', 'Deputy')
+def reports_unit(unit_id):
+    detail = get_unit_employees_report(unit_id)
+    if detail is None:
+        flash("Bo'lim topilmadi.", 'error')
+        return redirect(url_for('reports'))
+    return render_template('reports_unit.html', detail=detail)
 
 
 @app.route('/admin/activity-log')

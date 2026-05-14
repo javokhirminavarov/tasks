@@ -323,13 +323,273 @@ def get_dashboard_stats(user):
             (user.id, today)
         ).fetchone()[0]
 
+    # Overdue tasks count (scope matches role).
+    if user.role in ('Head', 'Deputy'):
+        overdue_tasks = conn.execute(
+            "SELECT COUNT(*) FROM tasks WHERE deadline < ? AND status != 'Completed'",
+            (today,)
+        ).fetchone()[0]
+    elif user.role == 'HeadOfUnit':
+        overdue_tasks = conn.execute(
+            """SELECT COUNT(DISTINCT t.id) FROM tasks t
+               JOIN task_assignees ta ON t.id = ta.task_id
+               JOIN users u ON ta.user_id = u.id
+               WHERE u.unit_id = ? AND t.deadline < ? AND t.status != 'Completed'""",
+            (user.unit_id, today)
+        ).fetchone()[0]
+    else:
+        overdue_tasks = conn.execute(
+            """SELECT COUNT(DISTINCT t.id) FROM tasks t
+               JOIN task_assignees ta ON t.id = ta.task_id
+               WHERE ta.user_id = ? AND t.deadline < ? AND t.status != 'Completed'""",
+            (user.id, today)
+        ).fetchone()[0]
+
+    # HeadOfUnit-only team metrics.
+    active_members = 0
+    completion_rate = 0
+    overloaded_count = 0
+    if user.role == 'HeadOfUnit' and user.unit_id:
+        active_members = conn.execute(
+            "SELECT COUNT(*) FROM users WHERE unit_id = ? AND active = 1",
+            (user.unit_id,),
+        ).fetchone()[0]
+        total = active_tasks + completed_tasks
+        completion_rate = round(100 * completed_tasks / total) if total else 0
+        overloaded_count = conn.execute(
+            """SELECT COUNT(DISTINCT t.id) FROM tasks t
+               JOIN task_assignees ta ON t.id = ta.task_id
+               JOIN users u ON ta.user_id = u.id
+               WHERE u.unit_id = ? AND t.overload_flag = 1""",
+            (user.unit_id,),
+        ).fetchone()[0]
+
     conn.close()
     return DotDict(
         active_tasks=active_tasks,
         active_projects=active_projects,
         completed_tasks=completed_tasks,
-        deadlines_today=deadlines_today
+        deadlines_today=deadlines_today,
+        overdue_tasks=overdue_tasks,
+        active_members=active_members,
+        completion_rate=completion_rate,
+        overloaded_count=overloaded_count,
     )
+
+
+def get_tasks_by_assignor(user_id, limit=10):
+    """Recent tasks where this user is the assignor — with a flattened
+    assignee_names string for compact display on the Head/Deputy dashboard.
+    """
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT t.id, t.title, t.status, t.deadline,
+                  GROUP_CONCAT(u.name, ', ') AS assignee_names
+           FROM tasks t
+           LEFT JOIN task_assignees ta ON t.id = ta.task_id
+           LEFT JOIN users u ON ta.user_id = u.id
+           WHERE t.assignor_id = ?
+           GROUP BY t.id
+           ORDER BY t.created_date DESC
+           LIMIT ?""",
+        (user_id, limit),
+    ).fetchall()
+    conn.close()
+    return [DotDict(dict(r)) for r in rows]
+
+
+def get_unit_reports():
+    """Per-unit report metrics for the global reports overview.
+
+    Returns one row per unit (including a virtual "no unit" bucket if any
+    tasks land outside a unit). Each row has: id, name, total, completed,
+    overdue, completion_rate, avg_duration_days, monthly_avg.
+    """
+    conn = get_db()
+    today = date.today().isoformat()
+    rows = conn.execute(
+        """SELECT un.id AS id, un.name AS name,
+                  COUNT(DISTINCT t.id) AS total,
+                  SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) AS completed,
+                  SUM(CASE WHEN t.deadline < ? AND t.status != 'Completed' THEN 1 ELSE 0 END) AS overdue,
+                  AVG(CASE WHEN t.completed_date IS NOT NULL
+                           THEN julianday(t.completed_date) - julianday(t.created_date)
+                           ELSE NULL END) AS avg_duration_days
+           FROM units un
+           LEFT JOIN users u ON u.unit_id = un.id
+           LEFT JOIN task_assignees ta ON ta.user_id = u.id
+           LEFT JOIN tasks t ON t.id = ta.task_id
+           GROUP BY un.id, un.name
+           ORDER BY un.name""",
+        (today,)
+    ).fetchall()
+    result = []
+    six_months_ago = conn.execute(
+        "SELECT date('now', '-6 months')"
+    ).fetchone()[0]
+    for r in rows:
+        d = dict(r)
+        d['total'] = d['total'] or 0
+        d['completed'] = d['completed'] or 0
+        d['overdue'] = d['overdue'] or 0
+        d['completion_rate'] = round(100 * d['completed'] / d['total']) if d['total'] else 0
+        d['avg_duration_days'] = round(d['avg_duration_days'], 1) if d['avg_duration_days'] else 0
+        recent = conn.execute(
+            """SELECT COUNT(DISTINCT t.id) FROM tasks t
+               JOIN task_assignees ta ON t.id = ta.task_id
+               JOIN users u ON ta.user_id = u.id
+               WHERE u.unit_id = ? AND t.created_date >= ?""",
+            (d['id'], six_months_ago),
+        ).fetchone()[0]
+        d['monthly_avg'] = round(recent / 6, 1)
+        result.append(DotDict(d))
+    conn.close()
+    return result
+
+
+def get_unit_employees_report(unit_id):
+    """Per-employee metrics inside one unit, plus the unit's name and a few
+    extras (priority breakdown, monthly trend, overall unit KPIs)."""
+    conn = get_db()
+    today = date.today().isoformat()
+
+    unit_row = conn.execute(
+        "SELECT id, name FROM units WHERE id = ?", (unit_id,)
+    ).fetchone()
+    if unit_row is None:
+        conn.close()
+        return None
+    unit = DotDict(dict(unit_row))
+
+    employees = conn.execute(
+        """SELECT u.id, u.name, u.role,
+                  COUNT(DISTINCT t.id) AS total,
+                  SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) AS completed,
+                  SUM(CASE WHEN t.deadline < ? AND t.status != 'Completed' THEN 1 ELSE 0 END) AS overdue,
+                  AVG(CASE WHEN t.completed_date IS NOT NULL
+                           THEN julianday(t.completed_date) - julianday(t.created_date)
+                           ELSE NULL END) AS avg_duration_days
+           FROM users u
+           LEFT JOIN task_assignees ta ON ta.user_id = u.id
+           LEFT JOIN tasks t ON t.id = ta.task_id
+           WHERE u.unit_id = ? AND u.active = 1
+           GROUP BY u.id, u.name, u.role
+           ORDER BY total DESC, u.name""",
+        (today, unit_id),
+    ).fetchall()
+    employees = [DotDict(dict(r)) for r in employees]
+    six_months_ago = conn.execute("SELECT date('now', '-6 months')").fetchone()[0]
+    for e in employees:
+        e.total = e.total or 0
+        e.completed = e.completed or 0
+        e.overdue = e.overdue or 0
+        e.completion_rate = round(100 * e.completed / e.total) if e.total else 0
+        e.avg_duration_days = round(e.avg_duration_days, 1) if e.avg_duration_days else 0
+        recent = conn.execute(
+            """SELECT COUNT(DISTINCT t.id) FROM tasks t
+               JOIN task_assignees ta ON t.id = ta.task_id
+               WHERE ta.user_id = ? AND t.created_date >= ?""",
+            (e.id, six_months_ago),
+        ).fetchone()[0]
+        e.monthly_avg = round(recent / 6, 1)
+
+    priority_rows = conn.execute(
+        """SELECT t.priority,
+                  COUNT(DISTINCT t.id) AS count,
+                  AVG(CASE WHEN t.completed_date IS NOT NULL
+                           THEN julianday(t.completed_date) - julianday(t.created_date)
+                           ELSE NULL END) AS avg_duration_days
+           FROM tasks t
+           JOIN task_assignees ta ON ta.task_id = t.id
+           JOIN users u ON ta.user_id = u.id
+           WHERE u.unit_id = ?
+           GROUP BY t.priority
+           ORDER BY CASE t.priority
+                       WHEN 'Urgent' THEN 1
+                       WHEN 'High' THEN 2
+                       WHEN 'Normal' THEN 3
+                       WHEN 'Low' THEN 4
+                       ELSE 5 END""",
+        (unit_id,),
+    ).fetchall()
+    priority_breakdown = []
+    for r in priority_rows:
+        d = dict(r)
+        d['avg_duration_days'] = round(d['avg_duration_days'], 1) if d['avg_duration_days'] else 0
+        priority_breakdown.append(DotDict(d))
+
+    # Monthly trend (last 6 months): created and completed counts.
+    monthly_trend = get_monthly_trend(unit_id=unit_id, conn=conn)
+
+    unit_totals = {
+        'total': sum(e.total for e in employees),
+        'completed': sum(e.completed for e in employees),
+        'overdue': sum(e.overdue for e in employees),
+    }
+    unit_totals['completion_rate'] = (
+        round(100 * unit_totals['completed'] / unit_totals['total']) if unit_totals['total'] else 0
+    )
+
+    conn.close()
+    return DotDict(
+        unit=unit,
+        employees=employees,
+        priority_breakdown=priority_breakdown,
+        monthly_trend=monthly_trend,
+        totals=DotDict(unit_totals),
+    )
+
+
+def get_monthly_trend(unit_id=None, conn=None):
+    """Return last 6 months of created vs completed counts.
+
+    Format: list of DotDict(month='YYYY-MM', created=int, completed=int) in
+    chronological order (oldest first).
+    """
+    owns_conn = conn is None
+    if owns_conn:
+        conn = get_db()
+    today = date.today()
+    months = []
+    for offset in range(5, -1, -1):
+        y = today.year
+        m = today.month - offset
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y:04d}-{m:02d}")
+
+    rows = {}
+    for label in months:
+        if unit_id is None:
+            created = conn.execute(
+                "SELECT COUNT(*) FROM tasks WHERE strftime('%Y-%m', created_date) = ?",
+                (label,),
+            ).fetchone()[0]
+            completed = conn.execute(
+                "SELECT COUNT(*) FROM tasks WHERE strftime('%Y-%m', completed_date) = ?",
+                (label,),
+            ).fetchone()[0]
+        else:
+            created = conn.execute(
+                """SELECT COUNT(DISTINCT t.id) FROM tasks t
+                   JOIN task_assignees ta ON ta.task_id = t.id
+                   JOIN users u ON ta.user_id = u.id
+                   WHERE u.unit_id = ? AND strftime('%Y-%m', t.created_date) = ?""",
+                (unit_id, label),
+            ).fetchone()[0]
+            completed = conn.execute(
+                """SELECT COUNT(DISTINCT t.id) FROM tasks t
+                   JOIN task_assignees ta ON ta.task_id = t.id
+                   JOIN users u ON ta.user_id = u.id
+                   WHERE u.unit_id = ? AND strftime('%Y-%m', t.completed_date) = ?""",
+                (unit_id, label),
+            ).fetchone()[0]
+        rows[label] = (created, completed)
+
+    if owns_conn:
+        conn.close()
+    return [DotDict(month=label, created=c, completed=d) for label, (c, d) in rows.items()]
 
 
 def get_team_workload():

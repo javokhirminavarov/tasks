@@ -1,36 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Mening vazifalarim - Topshiriqlar nazorati{% endblock %}
+{% block page_title %}{% if current_user.role == 'HeadOfUnit' and current_view == 'unit' %}{% if staff_name %}{{ staff_name }} vazifalari{% else %}Bo'lim vazifalari{% endif %}{% else %}Mening vazifalarim{% endif %}{% endblock %}
 
 {% block content %}
 <div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark">
-
-    <!-- Welcome Greeting (Staff/Intern merged view) -->
-    {% if current_user.role in ('Staff', 'Intern') and current_date %}
-    <div class="px-4 pt-4 pb-1">
-        <p class="text-[#606e8a] dark:text-gray-400 text-sm font-medium">{{ current_date }}</p>
-        <h1 class="text-[#111318] dark:text-white tracking-tight text-2xl font-bold leading-tight">Xush kelibsiz, {{ current_user.name }}</h1>
-    </div>
-    {% endif %}
-
-    <!-- Page Header -->
-    <div class="px-4 py-3 flex items-center justify-between {% if not (current_user.role in ('Staff', 'Intern') and current_date) %}border-b border-gray-200 dark:border-gray-800{% endif %}">
-        <div class="flex items-center gap-3">
-            <div class="relative">
-                <div class="flex items-center justify-center size-10 rounded-full ring-2 ring-white dark:ring-gray-700 shadow-sm bg-primary/10 text-primary font-bold text-lg">
-                    {{ current_user.name[0] }}
-                </div>
-                <div class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
-            </div>
-            <div>
-                <h1 class="text-lg font-bold leading-tight text-slate-900 dark:text-white">
-                    {% if current_user.role == 'HeadOfUnit' and current_view == 'unit' %}
-                        {% if staff_name %}{{ staff_name }} vazifalari{% else %}Bo'lim vazifalari{% endif %}
-                    {% else %}Mening vazifalarim{% endif %}
-                </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ unit_name or (current_user.role|role_uz) }}</p>
-            </div>
-        </div>
-    </div>
 
     <!-- View Toggle (HeadOfUnit only) -->
     {% if current_user.role == 'HeadOfUnit' %}
