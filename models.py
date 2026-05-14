@@ -571,7 +571,7 @@ def get_task_by_id(task_id):
     task = DotDict(dict(row))
 
     assignees = conn.execute(
-        """SELECT u.id, u.name, u.role, un.name as unit_name FROM users u
+        """SELECT u.id, u.name, u.role, u.telegram_id, un.name as unit_name FROM users u
            LEFT JOIN units un ON u.unit_id = un.id
            JOIN task_assignees ta ON u.id = ta.user_id
            WHERE ta.task_id = ?""",
