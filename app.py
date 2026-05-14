@@ -3,7 +3,7 @@ import math
 from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, url_for, session, g, flash, jsonify
 from models import (get_user_by_id, get_user_by_telegram_id, get_user_by_telegram_id_any,
-                    bootstrap_admin_from_env,
+                    bootstrap_admin_from_env, register_pending_user,
                     get_dashboard_stats,
                     get_team_workload, get_unit_performance,
                     get_my_tasks, get_my_task_stats, get_overdue_count_for_filter,
@@ -136,6 +136,31 @@ def auth_telegram():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+
+@app.route('/api/bot/register', methods=['POST'])
+def api_bot_register():
+    """Called by bot.py on /start to upsert a pending user.
+
+    Auth: requires header `X-Bot-Token` matching BOT_TOKEN. The endpoint is on
+    the public URL, so the shared secret prevents anyone from spamming it.
+    """
+    import hmac as _hmac
+    received = request.headers.get('X-Bot-Token', '')
+    if not BOT_TOKEN or not _hmac.compare_digest(received, BOT_TOKEN):
+        return jsonify({'error': 'unauthorized'}), 401
+
+    data = request.get_json(silent=True) or {}
+    telegram_id = str(data.get('telegram_id', '')).strip()
+    if not telegram_id:
+        return jsonify({'error': 'telegram_id required'}), 400
+
+    status = register_pending_user(
+        telegram_id=telegram_id,
+        telegram_username=data.get('username'),
+        name=data.get('name'),
+    )
+    return jsonify({'status': status})
 
 
 # --- Main Routes ---

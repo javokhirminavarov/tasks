@@ -30,19 +30,57 @@ def api_call(method, payload):
         return json.loads(resp.read().decode('utf-8'))
 
 
-def send_start_reply(chat_id):
+def register_user(tg_user):
+    """POST to Flask /api/bot/register. Returns one of 'new', 'inactive',
+    'active', or None on failure."""
+    payload = {
+        'telegram_id': tg_user.get('id'),
+        'username': tg_user.get('username'),
+        'name': ' '.join(
+            part for part in (tg_user.get('first_name'), tg_user.get('last_name')) if part
+        ) or tg_user.get('username') or 'Foydalanuvchi',
+    }
+    body = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(
+        f'{WEBAPP_URL.rstrip("/")}/api/bot/register',
+        data=body,
+        headers={
+            'Content-Type': 'application/json',
+            'X-Bot-Token': BOT_TOKEN,
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read().decode('utf-8')).get('status')
+    except Exception as exc:
+        print(f'[bot] register call failed: {exc}', flush=True)
+        return None
+
+
+def send_active_reply(chat_id):
     api_call('sendMessage', {
         'chat_id': chat_id,
         'text': (
-            'Welcome to the Task Management app.\n\n'
-            'Tap the button below to open it.'
+            "Vazifalarni boshqarish ilovasiga xush kelibsiz.\n\n"
+            "Ilovani ochish uchun pastdagi tugmani bosing."
         ),
         'reply_markup': {
             'inline_keyboard': [[
-                {'text': 'Open Task Manager', 'web_app': {'url': WEBAPP_URL}}
+                {'text': 'Ilovani ochish', 'web_app': {'url': WEBAPP_URL}}
             ]]
         },
     })
+
+
+def send_pending_reply(chat_id, is_new):
+    text = (
+        "Siz tizimga ro'yxatdan o'tdingiz. Administrator hisobingizni "
+        "faollashtirgach, /start buyrug'ini qaytadan yuboring."
+        if is_new else
+        "Hisobingiz hali faollashtirilmagan. Administrator bilan "
+        "bog'laning va keyin /start ni qaytadan yuboring."
+    )
+    api_call('sendMessage', {'chat_id': chat_id, 'text': text})
 
 
 def handle_update(update):
@@ -51,10 +89,17 @@ def handle_update(update):
         return
     text = (message.get('text') or '').strip()
     chat_id = message.get('chat', {}).get('id')
-    if not chat_id:
+    tg_user = message.get('from') or {}
+    if not chat_id or not tg_user.get('id'):
         return
-    if text.startswith('/start'):
-        send_start_reply(chat_id)
+    if not text.startswith('/start'):
+        return
+
+    status = register_user(tg_user)
+    if status == 'active':
+        send_active_reply(chat_id)
+    else:
+        send_pending_reply(chat_id, is_new=(status == 'new'))
 
 
 def poll():

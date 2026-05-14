@@ -100,6 +100,9 @@
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">ADMIN</span>
                     {% endif %}
                 </div>
+                {% if user.telegram_username %}
+                <p class="text-xs text-blue-500 dark:text-blue-400 truncate">@{{ user.telegram_username }}</p>
+                {% endif %}
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.role|role_uz }}</p>
                 {% if user.unit_name %}
                 <p class="text-xs text-primary font-medium mt-0.5">{{ user.unit_name }}</p>

@@ -102,7 +102,50 @@ def init_db():
         );
     """)
     conn.commit()
+
+    # Idempotent migration: add telegram_username column if missing.
+    cols = {row['name'] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+    if 'telegram_username' not in cols:
+        conn.execute("ALTER TABLE users ADD COLUMN telegram_username TEXT")
+        conn.commit()
     conn.close()
+
+
+def register_pending_user(telegram_id, telegram_username=None, name=None):
+    """Upsert a user from a bot /start event.
+
+    - New user: insert as Staff, active=0 (pending admin approval).
+    - Existing user: refresh name + username so admin sees up-to-date info.
+
+    Returns one of: 'new', 'inactive', 'active'.
+    """
+    telegram_id = str(telegram_id)
+    name = (name or '').strip() or 'Foydalanuvchi'
+    telegram_username = (telegram_username or '').strip() or None
+
+    conn = get_db()
+    row = conn.execute(
+        "SELECT id, active FROM users WHERE telegram_id = ?",
+        (telegram_id,),
+    ).fetchone()
+    if row is None:
+        conn.execute(
+            "INSERT INTO users (name, role, telegram_id, telegram_username, active) "
+            "VALUES (?, 'Staff', ?, ?, 0)",
+            (name, telegram_id, telegram_username),
+        )
+        conn.commit()
+        conn.close()
+        return 'new'
+
+    conn.execute(
+        "UPDATE users SET name = ?, telegram_username = ? WHERE id = ?",
+        (name, telegram_username, row['id']),
+    )
+    conn.commit()
+    status = 'active' if row['active'] else 'inactive'
+    conn.close()
+    return status
 
 
 def bootstrap_admin_from_env():
@@ -749,9 +792,9 @@ def get_all_users(status_filter=None, search=None):
         query += " AND u.active = 0"
 
     if search:
-        query += " AND (u.name LIKE ? OR u.role LIKE ? OR un.name LIKE ?)"
+        query += " AND (u.name LIKE ? OR u.role LIKE ? OR un.name LIKE ? OR u.telegram_username LIKE ?)"
         like = f"%{search}%"
-        params.extend([like, like, like])
+        params.extend([like, like, like, like])
 
     query += " ORDER BY u.active DESC, u.name"
     rows = conn.execute(query, params).fetchall()
