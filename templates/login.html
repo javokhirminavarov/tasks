@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html class="light" lang="uz">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -43,7 +43,7 @@
                 <span class="material-symbols-outlined text-[32px]">dashboard</span>
             </div>
             <h1 class="text-2xl font-bold text-[#111318] tracking-tight">TaskFlow</h1>
-            <p id="statusText" class="text-sm text-[#606e8a] mt-1">Authenticating...</p>
+            <p id="statusText" class="text-sm text-[#606e8a] mt-1">Tasdiqlanmoqda...</p>
         </div>
 
         <!-- Loading State -->
@@ -51,7 +51,7 @@
             <div class="inline-flex items-center justify-center size-12 rounded-full bg-primary/10 text-primary mb-4">
                 <span class="material-symbols-outlined text-[28px] spinner">progress_activity</span>
             </div>
-            <p class="text-sm text-gray-500">Verifying your Telegram account...</p>
+            <p class="text-sm text-gray-500">Telegram hisobingiz tekshirilmoqda...</p>
         </div>
 
         <!-- Error State (hidden by default) -->
@@ -59,7 +59,7 @@
             <div class="inline-flex items-center justify-center size-12 rounded-full bg-red-50 text-red-500 mb-4">
                 <span class="material-symbols-outlined text-[28px]">error</span>
             </div>
-            <p id="errorMessage" class="text-sm text-gray-700 font-medium mb-2">Authentication failed</p>
+            <p id="errorMessage" class="text-sm text-gray-700 font-medium mb-2">Tasdiqlash amalga oshmadi</p>
             <p id="errorDetail" class="text-xs text-gray-400"></p>
         </div>
 
@@ -68,11 +68,11 @@
             <div class="inline-flex items-center justify-center size-12 rounded-full bg-blue-50 text-blue-500 mb-4">
                 <span class="material-symbols-outlined text-[28px]">phone_iphone</span>
             </div>
-            <p class="text-sm text-gray-700 font-medium mb-2">Open via Telegram</p>
-            <p class="text-xs text-gray-400">This app can only be accessed through the Telegram bot. Open the bot and tap the app button to continue.</p>
+            <p class="text-sm text-gray-700 font-medium mb-2">Telegram orqali oching</p>
+            <p class="text-xs text-gray-400">Bu ilovaga faqat Telegram bot orqali kirish mumkin. Botni oching va ilova tugmasini bosing.</p>
         </div>
 
-        <p class="text-center text-xs text-[#606e8a] mt-6">Task Management System</p>
+        <p class="text-center text-xs text-[#606e8a] mt-6">Vazifalarni boshqarish tizimi</p>
     </div>
 
     <script>
@@ -81,7 +81,7 @@
         function showError(message, detail) {
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('errorState').classList.remove('hidden');
-            document.getElementById('statusText').textContent = 'Access Denied';
+            document.getElementById('statusText').textContent = 'Ruxsat berilmadi';
             document.getElementById('errorMessage').textContent = message;
             if (detail) document.getElementById('errorDetail').textContent = detail;
         }
@@ -89,7 +89,7 @@
         function showNotTelegram() {
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('notTelegramState').classList.remove('hidden');
-            document.getElementById('statusText').textContent = 'Telegram Required';
+            document.getElementById('statusText').textContent = 'Telegram talab qilinadi';
         }
 
         if (tg && tg.initData) {
@@ -107,11 +107,11 @@
                 if (data.success && data.redirect) {
                     window.location.href = data.redirect;
                 } else {
-                    showError(data.error || 'Authentication failed');
+                    showError(data.error || 'Tasdiqlash amalga oshmadi');
                 }
             })
             .catch(() => {
-                showError('Connection error', 'Could not reach the server. Please try again.');
+                showError('Ulanish xatosi', 'Serverga ulanib bo\'lmadi. Qaytadan urinib ko\'ring.');
             });
         } else {
             // Not running inside Telegram

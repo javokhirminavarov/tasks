@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}My Tasks - TaskFlow{% endblock %}
+{% block title %}Mening vazifalarim - TaskFlow{% endblock %}
 
 {% block content %}
 <div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark">
@@ -8,7 +8,7 @@
     {% if current_user.role in ('Staff', 'Intern') and current_date %}
     <div class="px-4 pt-4 pb-1">
         <p class="text-[#606e8a] dark:text-gray-400 text-sm font-medium">{{ current_date }}</p>
-        <h1 class="text-[#111318] dark:text-white tracking-tight text-2xl font-bold leading-tight">Welcome, {{ current_user.name }}</h1>
+        <h1 class="text-[#111318] dark:text-white tracking-tight text-2xl font-bold leading-tight">Xush kelibsiz, {{ current_user.name }}</h1>
     </div>
     {% endif %}
 
@@ -24,10 +24,10 @@
             <div>
                 <h1 class="text-lg font-bold leading-tight text-slate-900 dark:text-white">
                     {% if current_user.role == 'HeadOfUnit' and current_view == 'unit' %}
-                        {% if staff_name %}{{ staff_name }}'s Tasks{% else %}Unit Tasks{% endif %}
-                    {% else %}My Tasks{% endif %}
+                        {% if staff_name %}{{ staff_name }} vazifalari{% else %}Bo'lim vazifalari{% endif %}
+                    {% else %}Mening vazifalarim{% endif %}
                 </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ unit_name or current_user.role }}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ unit_name or (current_user.role|role_uz) }}</p>
             </div>
         </div>
     </div>
@@ -39,12 +39,12 @@
             <a href="{{ url_for('tasks_list', view='unit') }}"
                class="flex-1 text-center py-2 text-sm font-medium rounded-md transition-all
                       {% if current_view == 'unit' %}bg-white dark:bg-card-dark text-primary shadow-sm{% else %}text-gray-500 dark:text-gray-400{% endif %}">
-                Unit Tasks
+                Bo'lim vazifalari
             </a>
             <a href="{{ url_for('tasks_list', view='my') }}"
                class="flex-1 text-center py-2 text-sm font-medium rounded-md transition-all
                       {% if current_view == 'my' %}bg-white dark:bg-card-dark text-primary shadow-sm{% else %}text-gray-500 dark:text-gray-400{% endif %}">
-                My Tasks
+                Mening vazifalarim
             </a>
         </div>
         <!-- Staff Filter (Unit Tasks view) -->
@@ -53,7 +53,7 @@
             <a href="{{ url_for('tasks_list', view='unit', status=current_filter) }}"
                class="flex items-center gap-1 h-7 px-3 rounded-full shrink-0 text-xs font-medium transition-all
                       {% if not staff_filter %}bg-primary text-white{% else %}bg-white dark:bg-card-dark text-slate-600 dark:text-slate-300 border border-gray-200 dark:border-gray-700{% endif %}">
-                All Staff
+                Barcha xodimlar
             </a>
             {% for s in unit_staff_list %}
             <a href="{{ url_for('tasks_list', view='unit', staff=s.id, status=current_filter) }}"
@@ -73,7 +73,7 @@
             <!-- Active -->
             <div class="bg-white dark:bg-card-dark p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Active</span>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Faol</span>
                     <span class="material-symbols-outlined text-primary text-[20px]">play_circle</span>
                 </div>
                 <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.active }}</span>
@@ -81,7 +81,7 @@
             <!-- Overdue -->
             <div class="bg-white dark:bg-card-dark p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-medium text-red-600 dark:text-red-400">Overdue</span>
+                    <span class="text-xs font-medium text-red-600 dark:text-red-400">Muddati o'tgan</span>
                     <span class="material-symbols-outlined text-red-500 text-[20px]">warning</span>
                 </div>
                 <span class="text-2xl font-bold text-red-600 dark:text-red-400">{{ stats.overdue }}</span>
@@ -89,7 +89,7 @@
             <!-- Pending -->
             <div class="bg-white dark:bg-card-dark p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Pending</span>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Kutilmoqda</span>
                     <span class="material-symbols-outlined text-orange-400 text-[20px]">hourglass_top</span>
                 </div>
                 <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.pending }}</span>
@@ -97,7 +97,7 @@
             <!-- Completed -->
             <div class="bg-white dark:bg-card-dark p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Completed</span>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Bajarilgan</span>
                     <span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span>
                 </div>
                 <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.completed }}</span>
@@ -113,10 +113,10 @@
                 <span class="material-symbols-outlined icon-filled text-[20px]">priority_high</span>
             </div>
             <div class="flex-1">
-                <h3 class="text-sm font-bold text-amber-900 dark:text-amber-100 leading-tight">Action Required</h3>
-                <p class="text-xs text-amber-700 dark:text-amber-300/80 mt-0.5 leading-normal">{{ stats.urgent_soon }} task{{ 's' if stats.urgent_soon != 1 }} due within the next 72 hours. Please review your priorities.</p>
+                <h3 class="text-sm font-bold text-amber-900 dark:text-amber-100 leading-tight">E'tibor talab qilinadi</h3>
+                <p class="text-xs text-amber-700 dark:text-amber-300/80 mt-0.5 leading-normal">{{ stats.urgent_soon }} ta vazifaning muddati 72 soat ichida tugaydi. Ustuvorliklarni ko'rib chiqing.</p>
             </div>
-            <a href="{{ url_for('tasks_list', status='Overdue') }}" class="text-xs font-semibold bg-white dark:bg-amber-800 text-amber-700 dark:text-amber-100 px-3 py-1.5 rounded shadow-sm border border-amber-100 dark:border-amber-700">View</a>
+            <a href="{{ url_for('tasks_list', status='Overdue') }}" class="text-xs font-semibold bg-white dark:bg-amber-800 text-amber-700 dark:text-amber-100 px-3 py-1.5 rounded shadow-sm border border-amber-100 dark:border-amber-700">Ko'rish</a>
         </div>
     </div>
     {% endif %}
@@ -125,12 +125,12 @@
     <div class="sticky top-[57px] z-20 bg-background-light dark:bg-background-dark pt-2 pb-2 pl-4 border-b border-gray-200 dark:border-gray-800/50">
         <div class="flex gap-2 overflow-x-auto hide-scrollbar pr-4">
             {% set filters = [
-                ('all', 'All Tasks', '', ''),
-                ('Not Started', 'Not Started', 'radio_button_unchecked', ''),
-                ('In Progress', 'In Progress', 'timelapse', 'text-primary'),
-                ('Overdue', 'Overdue', 'error', 'text-red-500'),
-                ('Pending Approval', 'Approval', 'fact_check', 'text-purple-500'),
-                ('Completed', 'Completed', 'check_circle', 'text-green-500'),
+                ('all', 'Barcha vazifalar', '', ''),
+                ('Not Started', 'Boshlanmagan', 'radio_button_unchecked', ''),
+                ('In Progress', 'Jarayonda', 'timelapse', 'text-primary'),
+                ('Overdue', "Muddati o'tgan", 'error', 'text-red-500'),
+                ('Pending Approval', 'Tasdiqlash', 'fact_check', 'text-purple-500'),
+                ('Completed', 'Bajarilgan', 'check_circle', 'text-green-500'),
             ] %}
             {% for value, label, icon, icon_color in filters %}
             <a href="{{ url_for('tasks_list', status=value, view=current_view, staff=staff_filter or '') }}"
@@ -171,7 +171,7 @@
                             {% elif task.status == 'Pending Approval' %}bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300
                             {% elif task.status == 'Completed' %}bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-300
                             {% endif %}">
-                            {{ task.status }}
+                            {{ task.status|status_uz }}
                         </span>
                     </div>
                     <!-- Tags & Context -->
@@ -181,9 +181,9 @@
                         {% elif task.unit_name %}
                         <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium tracking-wide uppercase">{{ task.unit_name }}</span>
                         {% else %}
-                        <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium tracking-wide uppercase">{{ task.type }}</span>
+                        <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium tracking-wide uppercase">{{ task.type|type_uz }}</span>
                         {% endif %}
-                        <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium tracking-wide uppercase">{{ task.priority }}</span>
+                        <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium tracking-wide uppercase">{{ task.priority|priority_uz }}</span>
                     </div>
                     <!-- Footer: Assignor & Deadline -->
                     <div class="flex items-center justify-between border-t border-gray-50 dark:border-gray-800 pt-3 mt-1">
@@ -191,7 +191,7 @@
                             <div class="flex items-center justify-center size-6 rounded-full ring-1 ring-gray-100 dark:ring-gray-700 bg-primary/10 text-primary text-[10px] font-bold">
                                 {{ task.assignor_name[0] if task.assignor_name else '?' }}
                             </div>
-                            <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">{{ task.assignor_name or 'Unknown' }}</span>
+                            <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">{{ task.assignor_name or "Noma'lum" }}</span>
                         </div>
                         <div class="flex items-center gap-1
                             {% if task.deadline_urgency == 'overdue' %}text-red-600 dark:text-red-400
@@ -215,8 +215,8 @@
         {% else %}
             <div class="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
                 <span class="material-symbols-outlined text-[48px] mb-3">task</span>
-                <p class="text-sm font-medium">No tasks found</p>
-                <p class="text-xs mt-1">{% if current_filter != 'all' %}Try a different filter or {% endif %}create a new task</p>
+                <p class="text-sm font-medium">Vazifalar topilmadi</p>
+                <p class="text-xs mt-1">{% if current_filter != 'all' %}Boshqa filtr tanlang yoki {% endif %}yangi vazifa yarating</p>
             </div>
         {% endif %}
     </div>
@@ -228,7 +228,7 @@
         <button id="overload-toggle"
                 class="flex items-center gap-2 bg-white dark:bg-card-dark pl-3 pr-1 py-1 rounded-full shadow-lg border border-red-100 dark:border-red-900 group"
                 onclick="toggleOverload()">
-            <span class="text-xs font-bold text-red-600 dark:text-red-400">Overload</span>
+            <span class="text-xs font-bold text-red-600 dark:text-red-400">Ortiqcha yuk</span>
             <div id="overload-track" class="{% if is_overloaded %}bg-red-500{% else %}bg-gray-200 dark:bg-gray-700{% endif %} w-8 h-5 rounded-full relative transition-colors">
                 <div id="overload-knob" class="absolute top-0.5 {% if is_overloaded %}left-3.5{% else %}left-0.5{% endif %} w-4 h-4 bg-white rounded-full shadow-sm transition-transform"></div>
             </div>
@@ -240,11 +240,11 @@
         <div id="fab-menu" class="hidden flex-col items-end gap-2 mb-2">
             <a href="{{ url_for('self_request') }}" class="flex items-center gap-2 bg-white dark:bg-card-dark px-4 py-2.5 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
                 <span class="material-symbols-outlined text-primary text-[20px]">person_add</span>
-                <span class="text-sm font-semibold text-slate-800 dark:text-white whitespace-nowrap">Request for Myself</span>
+                <span class="text-sm font-semibold text-slate-800 dark:text-white whitespace-nowrap">O'zim uchun so'rov</span>
             </a>
             <a href="{{ url_for('task_create') }}" class="flex items-center gap-2 bg-white dark:bg-card-dark px-4 py-2.5 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
                 <span class="material-symbols-outlined text-primary text-[20px]">assignment_add</span>
-                <span class="text-sm font-semibold text-slate-800 dark:text-white whitespace-nowrap">Assign to Staff</span>
+                <span class="text-sm font-semibold text-slate-800 dark:text-white whitespace-nowrap">Xodimga biriktirish</span>
             </a>
         </div>
         <button id="fab-toggle" onclick="toggleFabMenu()" class="flex items-center justify-center size-14 rounded-full bg-primary text-white shadow-xl hover:bg-blue-600 active:scale-95 transition-all">

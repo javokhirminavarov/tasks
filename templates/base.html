@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html class="light" lang="uz">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -100,11 +100,11 @@
                 <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white dark:bg-[#1A2230] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2">
                     <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                         <p class="text-sm font-semibold text-[#111318] dark:text-white">{{ current_user.name }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ current_user.role }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ current_user.role|role_uz }}</p>
                     </div>
-                    <a href="{{ url_for('profile') }}" class="block px-4 py-2 text-sm text-[#111318] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">Profile</a>
-                    <a href="{{ url_for('settings') }}" class="block px-4 py-2 text-sm text-[#111318] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">Settings</a>
-                    <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800">Logout</a>
+                    <a href="{{ url_for('profile') }}" class="block px-4 py-2 text-sm text-[#111318] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">Profil</a>
+                    <a href="{{ url_for('settings') }}" class="block px-4 py-2 text-sm text-[#111318] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">Sozlamalar</a>
+                    <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800">Chiqish</a>
                 </div>
             </div>
             {% endif %}
@@ -140,59 +140,59 @@
             <!-- Head/Deputy Nav: Overview + Reports + Admin? + Settings -->
             <a href="{{ url_for('dashboard') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'dashboard' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">dashboard</span>
-                <span class="text-[10px] font-medium">Overview</span>
+                <span class="text-[10px] font-medium">Umumiy</span>
             </a>
             <a href="{{ url_for('reports') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'reports' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">analytics</span>
-                <span class="text-[10px] font-medium">Reports</span>
+                <span class="text-[10px] font-medium">Hisobotlar</span>
             </a>
             {% if is_admin %}
             <a href="{{ url_for('admin_panel') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint in ('admin_users', 'admin_units', 'admin_activity_log') %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">admin_panel_settings</span>
-                <span class="text-[10px] font-medium">Admin</span>
+                <span class="text-[10px] font-medium">Boshqaruv</span>
             </a>
             {% endif %}
             <a href="{{ url_for('settings') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'settings' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">settings</span>
-                <span class="text-[10px] font-medium">Settings</span>
+                <span class="text-[10px] font-medium">Sozlamalar</span>
             </a>
 
             {% elif current_user.role == 'HeadOfUnit' %}
             <!-- HeadOfUnit Nav: Overview + Tasks + Admin? + Settings -->
             <a href="{{ url_for('dashboard') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'dashboard' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">dashboard</span>
-                <span class="text-[10px] font-medium">Overview</span>
+                <span class="text-[10px] font-medium">Umumiy</span>
             </a>
             <a href="{{ url_for('tasks_list', view='unit') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'tasks_list' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">check_box</span>
-                <span class="text-[10px] font-medium">Tasks</span>
+                <span class="text-[10px] font-medium">Vazifalar</span>
             </a>
             {% if is_admin %}
             <a href="{{ url_for('admin_panel') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint in ('admin_users', 'admin_units', 'admin_activity_log') %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">admin_panel_settings</span>
-                <span class="text-[10px] font-medium">Admin</span>
+                <span class="text-[10px] font-medium">Boshqaruv</span>
             </a>
             {% endif %}
             <a href="{{ url_for('settings') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'settings' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">settings</span>
-                <span class="text-[10px] font-medium">Settings</span>
+                <span class="text-[10px] font-medium">Sozlamalar</span>
             </a>
 
             {% else %}
             <!-- Staff/Intern Nav: Home + Admin? + Settings -->
             <a href="{{ url_for('tasks_list') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'tasks_list' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">home</span>
-                <span class="text-[10px] font-medium">Home</span>
+                <span class="text-[10px] font-medium">Bosh sahifa</span>
             </a>
             {% if is_admin %}
             <a href="{{ url_for('admin_panel') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint in ('admin_users', 'admin_units', 'admin_activity_log') %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">admin_panel_settings</span>
-                <span class="text-[10px] font-medium">Admin</span>
+                <span class="text-[10px] font-medium">Boshqaruv</span>
             </a>
             {% endif %}
             <a href="{{ url_for('settings') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'settings' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">settings</span>
-                <span class="text-[10px] font-medium">Settings</span>
+                <span class="text-[10px] font-medium">Sozlamalar</span>
             </a>
             {% endif %}
 

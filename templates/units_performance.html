@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Units Performance - TaskFlow{% endblock %}
+{% block title %}Bo'limlar samaradorligi - TaskFlow{% endblock %}
 
 {% block content %}
 <div class="px-4 pt-6 pb-8">
@@ -9,18 +9,18 @@
         <a href="{{ url_for('dashboard') }}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <span class="material-symbols-outlined text-gray-600 dark:text-gray-400">arrow_back</span>
         </a>
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Units Performance</h1>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Bo'limlar samaradorligi</h1>
     </div>
 
     <!-- Summary Stats -->
     <div class="flex gap-3 mb-6">
         <div class="flex-1 bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
             <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ total_units }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Total Units</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Jami bo'limlar</p>
         </div>
         <div class="flex-1 bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
             <p class="text-2xl font-bold text-primary">{{ avg_completion_rate }}%</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Avg Completion</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">O'rtacha bajarish</p>
         </div>
     </div>
 
@@ -33,7 +33,7 @@
                 <div>
                     <h3 class="text-base font-bold text-gray-900 dark:text-white">{{ unit.name }}</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Head: {{ unit.head_name or 'Unassigned' }} &middot; {{ unit.member_count }} members
+                        Rahbar: {{ unit.head_name or "Tayinlanmagan" }} &middot; {{ unit.member_count }} a'zo
                     </p>
                 </div>
                 <span class="text-lg font-bold text-primary">{{ unit.completion_rate }}%</span>
@@ -50,27 +50,27 @@
             <div class="flex gap-2 flex-wrap">
                 {% if unit.not_started_tasks %}
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                    {{ unit.not_started_tasks }} Not Started
+                    {{ unit.not_started_tasks }} boshlanmagan
                 </span>
                 {% endif %}
                 {% if unit.in_progress_tasks %}
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                    {{ unit.in_progress_tasks }} In Progress
+                    {{ unit.in_progress_tasks }} jarayonda
                 </span>
                 {% endif %}
                 {% if unit.pending_tasks %}
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
-                    {{ unit.pending_tasks }} Pending
+                    {{ unit.pending_tasks }} kutilmoqda
                 </span>
                 {% endif %}
                 {% if unit.completed_tasks %}
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
-                    {{ unit.completed_tasks }} Completed
+                    {{ unit.completed_tasks }} bajarilgan
                 </span>
                 {% endif %}
                 {% if unit.overdue_tasks and unit.overdue_tasks > 0 %}
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
-                    {{ unit.overdue_tasks }} Overdue
+                    {{ unit.overdue_tasks }} muddati o'tgan
                 </span>
                 {% endif %}
             </div>
@@ -80,7 +80,7 @@
         {% if not units %}
         <div class="bg-white dark:bg-[#1A2230] p-12 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
             <span class="material-symbols-outlined text-[48px] text-gray-300 dark:text-gray-600 mb-2">apartment</span>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">No units found</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Bo'limlar topilmadi</p>
         </div>
         {% endif %}
     </div>

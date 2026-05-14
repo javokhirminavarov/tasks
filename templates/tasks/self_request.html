@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}New Request - TaskFlow{% endblock %}
+{% block title %}Yangi so'rov - TaskFlow{% endblock %}
 
 {% block content %}
 <div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark">
@@ -8,10 +8,10 @@
 <!-- Header -->
 <header class="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
     <a href="{{ url_for('tasks_list') }}" class="text-primary text-[17px] font-normal active:opacity-70 transition-opacity">
-        Cancel
+        Bekor qilish
     </a>
     <h1 class="text-[17px] font-semibold text-[#111318] dark:text-white tracking-tight">
-        New Request
+        Yangi so'rov
     </h1>
     <div class="w-[50px]"></div>
 </header>
@@ -23,12 +23,12 @@
         <div class="flex items-start gap-3 rounded-xl bg-yellow-50 border border-yellow-100 p-4 dark:bg-yellow-900/20 dark:border-yellow-800/50">
             <span class="material-symbols-outlined text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" style="font-size: 20px;">info</span>
             <div class="flex flex-col gap-1">
-                <p class="text-yellow-900 dark:text-yellow-200 text-sm font-semibold leading-tight">Verification Required</p>
+                <p class="text-yellow-900 dark:text-yellow-200 text-sm font-semibold leading-tight">Tasdiqlash talab qilinadi</p>
                 <p class="text-yellow-800/80 dark:text-yellow-200/70 text-xs font-normal leading-relaxed">
                     {% if current_user.role == 'HeadOfUnit' %}
-                    Tasks you create for yourself must be verified by the Head or Deputy before appearing in your active workload.
+                    O'zingiz uchun yaratgan vazifalar faol ish hajmiga qo'shilishidan oldin Rahbar yoki O'rinbosar tomonidan tasdiqlanishi kerak.
                     {% else %}
-                    Self-assigned tasks must be verified by a manager before appearing in your active workload.
+                    O'zingizga biriktirilgan vazifalar faol ish hajmiga qo'shilishidan oldin rahbar tomonidan tasdiqlanishi kerak.
                     {% endif %}
                 </p>
             </div>
@@ -41,22 +41,22 @@
 
             <!-- Task Title -->
             <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="task-title">Task Title</label>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="task-title">Vazifa nomi</label>
                 <input name="title" id="task-title" type="text"
                        value="{{ form.get('title', '') if form else '' }}"
                        class="form-input w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-base text-[#111318] placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-[#1A2230] dark:text-white dark:placeholder:text-gray-500 transition-all shadow-sm"
-                       placeholder="e.g., Inventory Check Aisle 4"/>
+                       placeholder="masalan, Omborni tekshirish"/>
             </div>
 
             <!-- Description -->
             <div class="flex flex-col gap-2">
                 <div class="flex justify-between items-baseline">
-                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="task-desc">Description</label>
-                    <span class="text-xs text-gray-400">Optional</span>
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="task-desc">Tavsif</label>
+                    <span class="text-xs text-gray-400">Ixtiyoriy</span>
                 </div>
                 <textarea name="description" id="task-desc" rows="4"
                           class="form-textarea w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-[#111318] placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-[#1A2230] dark:text-white dark:placeholder:text-gray-500 transition-all shadow-sm"
-                          placeholder="Describe the details of the task...">{{ form.get('description', '') if form else '' }}</textarea>
+                          placeholder="Vazifa tafsilotlarini yozing...">{{ form.get('description', '') if form else '' }}</textarea>
             </div>
 
             <!-- Priority & Due Date -->
@@ -64,31 +64,31 @@
 
                 <!-- Priority Segmented Control -->
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Priority Level</label>
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Muhimlik darajasi</label>
                     <input type="hidden" name="priority" id="priority-input" value="{{ form.get('priority', 'Normal') if form else 'Normal' }}"/>
                     {% set current_priority = (form.get('priority', 'Normal') if form else 'Normal') %}
                     <div class="flex rounded-lg bg-gray-100 p-1 dark:bg-[#1A2230]" id="priority-control">
                         <button type="button" data-value="Low"
                                 class="priority-btn flex-1 rounded-md py-1.5 text-sm font-medium transition-all
                                        {{ 'bg-white text-primary shadow-sm ring-1 ring-black/5 font-semibold dark:bg-gray-700 dark:text-white dark:ring-white/10' if current_priority == 'Low' else 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}">
-                            Low
+                            Past
                         </button>
                         <button type="button" data-value="Normal"
                                 class="priority-btn flex-1 rounded-md py-1.5 text-sm font-medium transition-all
                                        {{ 'bg-white text-primary shadow-sm ring-1 ring-black/5 font-semibold dark:bg-gray-700 dark:text-white dark:ring-white/10' if current_priority == 'Normal' else 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}">
-                            Medium
+                            O'rtacha
                         </button>
                         <button type="button" data-value="High"
                                 class="priority-btn flex-1 rounded-md py-1.5 text-sm font-medium transition-all
                                        {{ 'bg-white text-primary shadow-sm ring-1 ring-black/5 font-semibold dark:bg-gray-700 dark:text-white dark:ring-white/10' if current_priority == 'High' else 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}">
-                            High
+                            Yuqori
                         </button>
                     </div>
                 </div>
 
                 <!-- Due Date -->
                 <div class="flex flex-col gap-2">
-                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Muddat</label>
                     <input name="deadline" type="date"
                            value="{{ form.get('deadline', '') if form else '' }}"
                            class="form-input w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-base text-[#111318] focus:border-primary focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-[#1A2230] dark:text-white transition-all shadow-sm"/>
@@ -99,14 +99,14 @@
 
             <!-- Verifier Section -->
             <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="verifier-select">Assign Verifier</label>
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="verifier-select">Tasdiqlovchi tanlash</label>
                 <div class="relative">
                     <select name="verifier_id" id="verifier-select"
                             class="form-select w-full appearance-none rounded-xl border border-gray-200 bg-white py-3.5 pl-4 pr-10 text-base text-[#111318] focus:border-primary focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-[#1A2230] dark:text-white shadow-sm cursor-pointer">
-                        <option value="">-- Select Verifier --</option>
+                        <option value="">-- Tasdiqlovchini tanlang --</option>
                         {% for v in verifiers %}
                         <option value="{{ v.id }}" {{ 'selected' if form and form.get('verifier_id') == v.id|string else '' }}>
-                            {{ v.name }} ({{ v.role }})
+                            {{ v.name }} ({{ v.role|role_uz }})
                         </option>
                         {% endfor %}
                     </select>
@@ -114,7 +114,7 @@
                         <span class="material-symbols-outlined text-gray-400" style="font-size: 24px;">expand_more</span>
                     </div>
                 </div>
-                <p class="text-xs text-gray-400 px-1">Selected manager will receive a notification.</p>
+                <p class="text-xs text-gray-400 px-1">Tanlangan rahbarga bildirishnoma yuboriladi.</p>
             </div>
 
         </div>
@@ -125,7 +125,7 @@
 <div class="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-background-dark/90 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 px-4 py-4 pb-8 max-w-md mx-auto">
     <button type="submit" form="self-request-form"
             class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 px-4 text-base font-semibold text-white shadow-lg shadow-primary/25 transition-transform active:scale-[0.98] hover:bg-primary/90">
-        <span>Submit for Verification</span>
+        <span>Tasdiqlashga yuborish</span>
         <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
     </button>
 </div>
