@@ -2,7 +2,10 @@ import sqlite3
 import os
 from datetime import date, timedelta
 
-DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
+DATABASE = os.environ.get(
+    'DATABASE_PATH',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db'),
+)
 
 
 def get_db():
