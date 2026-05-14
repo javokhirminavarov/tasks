@@ -111,6 +111,32 @@
         </div>
     </div>
 
+    <!-- Admin Sub-Navigation -->
+    {% if is_admin and request.endpoint in ('admin_users', 'admin_units', 'admin_activity_log') %}
+    <div class="sticky top-[73px] z-40 bg-white/90 dark:bg-[#101622]/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 px-4 py-2">
+        <div class="flex gap-2 overflow-x-auto hide-scrollbar">
+            <a href="{{ url_for('admin_users') }}"
+               class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors
+                      {% if request.endpoint == 'admin_users' %}bg-primary text-white shadow-sm{% else %}bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700{% endif %}">
+                <span class="material-symbols-outlined text-[16px]">group</span>
+                Foydalanuvchilar
+            </a>
+            <a href="{{ url_for('admin_units') }}"
+               class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors
+                      {% if request.endpoint == 'admin_units' %}bg-primary text-white shadow-sm{% else %}bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700{% endif %}">
+                <span class="material-symbols-outlined text-[16px]">apartment</span>
+                Bo'limlar
+            </a>
+            <a href="{{ url_for('admin_activity_log') }}"
+               class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors
+                      {% if request.endpoint == 'admin_activity_log' %}bg-primary text-white shadow-sm{% else %}bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700{% endif %}">
+                <span class="material-symbols-outlined text-[16px]">history</span>
+                Faoliyat jurnali
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
