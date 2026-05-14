@@ -24,6 +24,10 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 
+# Ensure tables exist when the app is imported by a WSGI server (e.g. gunicorn).
+with app.app_context():
+    init_db()
+
 
 # --- Before Request / Context Processor ---
 
@@ -801,5 +805,6 @@ def admin_edit_unit(unit_id):
 # --- App Startup ---
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(host='0.0.0.0', port=port, debug=debug)
