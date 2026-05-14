@@ -802,6 +802,31 @@ def get_all_users(status_filter=None, search=None):
     return [DotDict(dict(r)) for r in rows]
 
 
+def get_other_admins(except_user_id):
+    """List all active admins except the given user (for the demote tool)."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, name, telegram_id, telegram_username FROM users "
+        "WHERE is_admin = 1 AND id != ? ORDER BY name",
+        (except_user_id,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def demote_other_admins(except_user_id):
+    """Set is_admin=0 for every user except the given one. Returns count."""
+    conn = get_db()
+    cur = conn.execute(
+        "UPDATE users SET is_admin = 0 WHERE is_admin = 1 AND id != ?",
+        (except_user_id,),
+    )
+    conn.commit()
+    affected = cur.rowcount
+    conn.close()
+    return affected
+
+
 def create_user(name, role, telegram_id, unit_id=None, phone=None, is_admin=False):
     """Create a new user. Returns the new user ID."""
     conn = get_db()

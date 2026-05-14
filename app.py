@@ -4,6 +4,7 @@ from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, url_for, session, g, flash, jsonify
 from models import (get_user_by_id, get_user_by_telegram_id, get_user_by_telegram_id_any,
                     bootstrap_admin_from_env, register_pending_user,
+                    get_other_admins, demote_other_admins,
                     get_dashboard_stats,
                     get_team_workload, get_unit_performance,
                     get_my_tasks, get_my_task_stats, get_overdue_count_for_filter,
@@ -702,9 +703,27 @@ def admin_users():
     )
     units = get_all_units()
     roles = ['Head', 'Deputy', 'HeadOfUnit', 'Staff', 'Intern']
+    other_admins = get_other_admins(g.current_user.id)
     return render_template('admin/users.html',
                            users=users, units=units, roles=roles,
-                           current_filter=status_filter, search=search)
+                           current_filter=status_filter, search=search,
+                           other_admins=other_admins)
+
+
+@app.route('/admin/users/demote-others', methods=['POST'])
+@login_required
+@admin_required
+def admin_demote_others():
+    """Strip is_admin from every user except the currently logged-in admin.
+
+    A safety tool: lets the bootstrap admin quickly recover if other accounts
+    were accidentally promoted.
+    """
+    count = demote_other_admins(g.current_user.id)
+    log_activity(g.current_user.id, 'Demoted other admins', 'User', None,
+                 f'{count} ta foydalanuvchi')
+    flash(f'{count} ta foydalanuvchidan administrator huquqi olib tashlandi.', 'success')
+    return redirect(url_for('admin_users'))
 
 
 @app.route('/admin/users/create', methods=['POST'])
