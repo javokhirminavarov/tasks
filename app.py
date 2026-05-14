@@ -120,17 +120,27 @@ def auth_telegram():
 
     telegram_id = str(tg_user['id'])
 
-    # Look up user by telegram_id
+    # Active user → log in.
     user = get_user_by_telegram_id(telegram_id)
-    if user is None:
-        # Check if user exists but is inactive
-        inactive_user = get_user_by_telegram_id_any(telegram_id)
-        if inactive_user:
-            return jsonify({'error': 'Hisobingiz o\'chirilgan. Administrator bilan bog\'laning.'}), 403
-        return jsonify({'error': 'Siz tizimda ro\'yxatdan o\'tmagansiz. Administrator bilan bog\'laning.'}), 403
+    if user is not None:
+        session['user_id'] = user.id
+        return jsonify({'success': True, 'redirect': url_for('dashboard')})
 
-    session['user_id'] = user.id
-    return jsonify({'success': True, 'redirect': url_for('dashboard')})
+    # Not active. Auto-register if missing so the user immediately becomes a
+    # pending record the admin can see, even if they opened the Mini App
+    # before sending /start to the bot.
+    inactive_user = get_user_by_telegram_id_any(telegram_id)
+    if inactive_user is None:
+        full_name = ' '.join(
+            part for part in (tg_user.get('first_name'), tg_user.get('last_name')) if part
+        ) or tg_user.get('username') or 'Foydalanuvchi'
+        register_pending_user(
+            telegram_id=telegram_id,
+            telegram_username=tg_user.get('username'),
+            name=full_name,
+        )
+
+    return jsonify({'pending': True}), 200
 
 
 @app.route('/logout')
