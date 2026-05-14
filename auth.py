@@ -93,7 +93,7 @@ def admin_required(f):
         if g.current_user is None:
             return redirect(url_for('login'))
         if not g.current_user.get('is_admin'):
-            flash('You do not have admin access.', 'error')
+            flash('Administrator huquqlariga ega emassiz.', 'error')
             return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
     return decorated_function
@@ -107,7 +107,7 @@ def role_required(*roles):
             if g.current_user is None:
                 return redirect(url_for('login'))
             if g.current_user.role not in roles:
-                flash('You do not have permission to access this page.', 'error')
+                flash('Bu sahifaga kirish huquqingiz yo\'q.', 'error')
                 return redirect(url_for('dashboard'))
             return f(*args, **kwargs)
         return decorated_function

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Organization Units - TaskFlow{% endblock %}
+{% block title %}Tashkilot bo'limlari - TaskFlow{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -21,7 +21,7 @@
 <!-- Page Header -->
 <div class="bg-white dark:bg-[#1a2230] border-b border-gray-200 dark:border-gray-800 px-4 py-4">
     <div class="flex items-center justify-between">
-        <h1 class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Organization Units</h1>
+        <h1 class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Tashkilot bo'limlari</h1>
         <button onclick="openModal('searchUnitsModal')" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <span class="material-symbols-outlined text-gray-900 dark:text-white">search</span>
         </button>
@@ -48,11 +48,11 @@
     <!-- Stats Summary -->
     <div class="flex gap-4 mb-2">
         <div class="flex-1 bg-white dark:bg-[#1a2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Units</p>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Jami bo'limlar</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.total_units }}</p>
         </div>
         <div class="flex-1 bg-white dark:bg-[#1a2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Staff</p>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Jami xodimlar</p>
             <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.total_users }}</p>
         </div>
     </div>
@@ -87,7 +87,7 @@
                         {% if unit.head_active %}bg-green-500{% else %}bg-yellow-400{% endif %}"></div>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Head of Unit</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Bo'lim boshlig'i</p>
                     <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ unit.head_name }}</p>
                 </div>
                 {% else %}
@@ -95,8 +95,8 @@
                     <span class="material-symbols-outlined" style="font-size: 20px;">person_off</span>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Head of Unit</p>
-                    <p class="text-sm font-semibold text-gray-400 dark:text-gray-500 italic">Unassigned</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Bo'lim boshlig'i</p>
+                    <p class="text-sm font-semibold text-gray-400 dark:text-gray-500 italic">Tayinlanmagan</p>
                 </div>
                 {% endif %}
             </div>
@@ -110,7 +110,7 @@
     {% else %}
     <div class="text-center py-12 text-gray-400">
         <span class="material-symbols-outlined text-[48px] mb-2">apartment</span>
-        <p class="text-sm">No units created yet.</p>
+        <p class="text-sm">Hozircha bo'limlar yaratilmagan.</p>
     </div>
     {% endif %}
 </div>
@@ -120,7 +120,7 @@
     <button onclick="openModal('createUnitModal')"
             class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 active:scale-[0.98] text-white text-base font-bold h-12 rounded-xl transition-all shadow-lg shadow-primary/25">
         <span class="material-symbols-outlined">add_circle</span>
-        <span>Create New Unit</span>
+        <span>Yangi bo'lim yaratish</span>
     </button>
 </div>
 
@@ -130,7 +130,7 @@
     <div class="relative bg-white dark:bg-[#1a2230] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto shadow-2xl z-10">
         <div class="sticky top-0 bg-white dark:bg-[#1a2230] px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Create New Unit</h2>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Yangi bo'lim yaratish</h2>
                 <button onclick="closeModal('createUnitModal')" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     <span class="material-symbols-outlined text-gray-400">close</span>
                 </button>
@@ -138,18 +138,18 @@
         </div>
         <form method="POST" action="{{ url_for('admin_create_unit') }}" class="p-6 flex flex-col gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit Name</label>
-                <input name="name" type="text" required placeholder="e.g. Engineering"
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bo'lim nomi</label>
+                <input name="name" type="text" required placeholder="masalan, Muhandislik"
                        class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"/>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Head of Unit</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bo'lim boshlig'i</label>
                 <select name="head_user_id"
                         class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-                    <option value="">Unassigned</option>
+                    <option value="">Tayinlanmagan</option>
                     {% for user in all_users %}
                     {% if user.active and user.role != 'Admin' %}
-                    <option value="{{ user.id }}">{{ user.name }} ({{ user.role }})</option>
+                    <option value="{{ user.id }}">{{ user.name }} ({{ user.role|role_uz }})</option>
                     {% endif %}
                     {% endfor %}
                 </select>
@@ -157,7 +157,7 @@
             <button type="submit"
                     class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-base font-bold h-12 rounded-xl transition-all shadow-lg shadow-primary/25 mt-2">
                 <span class="material-symbols-outlined">add_circle</span>
-                Create Unit
+                Bo'limni yaratish
             </button>
         </form>
     </div>
@@ -169,7 +169,7 @@
     <div class="relative bg-white dark:bg-[#1a2230] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto shadow-2xl z-10">
         <div class="sticky top-0 bg-white dark:bg-[#1a2230] px-6 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Edit Unit</h2>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Bo'limni tahrirlash</h2>
                 <button onclick="closeModal('editUnitModal')" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     <span class="material-symbols-outlined text-gray-400">close</span>
                 </button>
@@ -177,18 +177,18 @@
         </div>
         <form id="editUnitForm" method="POST" class="p-6 flex flex-col gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit Name</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bo'lim nomi</label>
                 <input id="editUnitName" name="name" type="text" required
                        class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"/>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Head of Unit</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bo'lim boshlig'i</label>
                 <select id="editUnitHead" name="head_user_id"
                         class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-background-light dark:bg-background-dark text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-                    <option value="">Unassigned</option>
+                    <option value="">Tayinlanmagan</option>
                     {% for user in all_users %}
                     {% if user.active and user.role != 'Admin' %}
-                    <option value="{{ user.id }}">{{ user.name }} ({{ user.role }})</option>
+                    <option value="{{ user.id }}">{{ user.name }} ({{ user.role|role_uz }})</option>
                     {% endif %}
                     {% endfor %}
                 </select>
@@ -196,7 +196,7 @@
             <button type="submit"
                     class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-base font-bold h-12 rounded-xl transition-all shadow-lg shadow-primary/25 mt-2">
                 <span class="material-symbols-outlined">save</span>
-                Save Changes
+                O'zgarishlarni saqlash
             </button>
         </form>
     </div>

@@ -20,10 +20,12 @@ from models import (get_user_by_id, get_user_by_telegram_id, get_user_by_telegra
                     get_unit_team_workload, get_unit_performance_for_head_of_unit,
                     get_unit_staff_list)
 from auth import login_required, admin_required, role_required, validate_telegram_init_data
+from translations import register_filters, status_uz
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
+register_filters(app)
 
 # Ensure tables exist when the app is imported by a WSGI server (e.g. gunicorn).
 with app.app_context():
@@ -105,15 +107,15 @@ def auth_telegram():
         init_data = request.form.get('initData', '')
 
     if not BOT_TOKEN:
-        return jsonify({'error': 'Bot not configured'}), 500
+        return jsonify({'error': 'Bot sozlanmagan'}), 500
 
     parsed = validate_telegram_init_data(init_data, BOT_TOKEN)
     if parsed is None:
-        return jsonify({'error': 'Invalid or expired authentication'}), 401
+        return jsonify({'error': 'Tasdiqlash xato yoki muddati o\'tgan'}), 401
 
     tg_user = parsed.get('user')
     if not tg_user or 'id' not in tg_user:
-        return jsonify({'error': 'No user data in authentication'}), 401
+        return jsonify({'error': 'Tasdiqlashda foydalanuvchi ma\'lumotlari yo\'q'}), 401
 
     telegram_id = str(tg_user['id'])
 
@@ -123,8 +125,8 @@ def auth_telegram():
         # Check if user exists but is inactive
         inactive_user = get_user_by_telegram_id_any(telegram_id)
         if inactive_user:
-            return jsonify({'error': 'Your account has been deactivated. Contact admin.'}), 403
-        return jsonify({'error': 'You are not registered in the system. Contact admin.'}), 403
+            return jsonify({'error': 'Hisobingiz o\'chirilgan. Administrator bilan bog\'laning.'}), 403
+        return jsonify({'error': 'Siz tizimda ro\'yxatdan o\'tmagansiz. Administrator bilan bog\'laning.'}), 403
 
     session['user_id'] = user.id
     return jsonify({'success': True, 'redirect': url_for('dashboard')})
@@ -255,7 +257,7 @@ def task_detail(task_id):
 
     task = get_task_by_id(task_id)
     if task is None:
-        flash('Task not found.', 'error')
+        flash('Vazifa topilmadi.', 'error')
         return redirect(url_for('tasks_list'))
 
     # Permission check: user must be assignee, assignor, requester, or Head/Deputy
@@ -276,10 +278,10 @@ def task_detail(task_id):
         ).fetchone()[0]
         conn.close()
         if not in_unit:
-            flash('You do not have access to this task.', 'error')
+            flash('Bu vazifaga kirish huquqingiz yo\'q.', 'error')
             return redirect(url_for('tasks_list'))
     elif not (is_assignee or is_assignor or is_requester or is_head):
-        flash('You do not have access to this task.', 'error')
+        flash('Bu vazifaga kirish huquqingiz yo\'q.', 'error')
         return redirect(url_for('tasks_list'))
 
     comments = get_task_comments(task_id)
@@ -305,7 +307,7 @@ def task_update_status(task_id):
     user = g.current_user
     task = get_task_by_id(task_id)
     if task is None:
-        flash('Task not found.', 'error')
+        flash('Vazifa topilmadi.', 'error')
         return redirect(url_for('tasks_list'))
 
     new_status = request.form.get('status', '').strip()
@@ -319,7 +321,7 @@ def task_update_status(task_id):
 
     allowed = valid_transitions.get(task.status, [])
     if new_status not in allowed:
-        flash('Invalid status transition.', 'error')
+        flash('Holatni bunday o\'zgartirib bo\'lmaydi.', 'error')
         return redirect(url_for('task_detail', task_id=task_id))
 
     # Permission checks
@@ -328,24 +330,24 @@ def task_update_status(task_id):
     is_head = user.role in ('Head', 'Deputy')
 
     if new_status == 'In Progress' and task.status == 'Not Started' and not is_assignee:
-        flash('Only assignees can start a task.', 'error')
+        flash('Vazifani faqat bajaruvchilar boshlashi mumkin.', 'error')
         return redirect(url_for('task_detail', task_id=task_id))
 
     if new_status == 'Pending Approval' and not is_assignee:
-        flash('Only assignees can submit for approval.', 'error')
+        flash('Tasdiqlashga faqat bajaruvchilar yuborishi mumkin.', 'error')
         return redirect(url_for('task_detail', task_id=task_id))
 
     if new_status == 'Completed' and not (is_assignor or is_head):
-        flash('Only the assignor or Head/Deputy can approve tasks.', 'error')
+        flash('Vazifani faqat biriktirgan shaxs yoki Rahbar/O\'rinbosar tasdiqlay oladi.', 'error')
         return redirect(url_for('task_detail', task_id=task_id))
 
     if new_status == 'In Progress' and task.status == 'Pending Approval' and not (is_assignor or is_head):
-        flash('Only the assignor or Head/Deputy can reject tasks.', 'error')
+        flash('Vazifani faqat biriktirgan shaxs yoki Rahbar/O\'rinbosar rad eta oladi.', 'error')
         return redirect(url_for('task_detail', task_id=task_id))
 
     update_task_status(task_id, new_status, completion_note if new_status == 'Completed' else None)
     log_activity(user.id, f'Changed status to {new_status}', 'Task', task_id, task.title)
-    flash(f'Task status updated to "{new_status}".', 'success')
+    flash(f'Vazifa holati "{status_uz(new_status)}" ga o\'zgartirildi.', 'success')
     return redirect(url_for('task_detail', task_id=task_id))
 
 
@@ -355,12 +357,12 @@ def task_add_comment(task_id):
     user = g.current_user
     task = get_task_by_id(task_id)
     if task is None:
-        flash('Task not found.', 'error')
+        flash('Vazifa topilmadi.', 'error')
         return redirect(url_for('tasks_list'))
 
     comment_text = request.form.get('comment', '').strip()
     if not comment_text:
-        flash('Comment cannot be empty.', 'error')
+        flash('Izoh bo\'sh bo\'lishi mumkin emas.', 'error')
         return redirect(url_for('task_detail', task_id=task_id))
 
     add_comment(task_id, user.id, comment_text)
@@ -374,19 +376,19 @@ def task_delete(task_id):
     user = g.current_user
     task = get_task_by_id(task_id)
     if task is None:
-        flash('Task not found.', 'error')
+        flash('Vazifa topilmadi.', 'error')
         return redirect(url_for('tasks_list'))
 
     is_assignor = user.id == task.assignor_id
     is_head = user.role in ('Head', 'Deputy')
 
     if not (is_assignor or is_head):
-        flash('You do not have permission to delete this task.', 'error')
+        flash('Bu vazifani o\'chirishga ruxsatingiz yo\'q.', 'error')
         return redirect(url_for('task_detail', task_id=task_id))
 
     delete_task(task_id)
     log_activity(user.id, 'Deleted task', 'Task', task_id, task.title)
-    flash('Task deleted successfully.', 'success')
+    flash('Vazifa muvaffaqiyatli o\'chirildi.', 'success')
     return redirect(url_for('tasks_list'))
 
 
@@ -432,7 +434,7 @@ def task_create():
             deadline=deadline, assignee_ids=assignee_ids
         )
         log_activity(user.id, 'Created task', 'Task', new_id, title)
-        flash('Task created successfully.', 'success')
+        flash('Vazifa muvaffaqiyatli yaratildi.', 'success')
         return redirect(url_for('tasks_list'))
 
     # GET
@@ -446,12 +448,12 @@ def task_edit(task_id):
     user = g.current_user
 
     if user.role not in ('Head', 'Deputy', 'HeadOfUnit'):
-        flash('You do not have permission to edit tasks.', 'error')
+        flash('Vazifalarni tahrirlashga ruxsatingiz yo\'q.', 'error')
         return redirect(url_for('tasks_list'))
 
     task = get_task_by_id(task_id)
     if task is None:
-        flash('Task not found.', 'error')
+        flash('Vazifa topilmadi.', 'error')
         return redirect(url_for('tasks_list'))
 
     # HeadOfUnit can only edit tasks assigned to their unit
@@ -465,7 +467,7 @@ def task_edit(task_id):
         ).fetchone()[0]
         conn.close()
         if not in_unit:
-            flash('You can only edit tasks within your unit.', 'error')
+            flash('Faqat o\'z bo\'limingiz vazifalarini tahrirlashingiz mumkin.', 'error')
             return redirect(url_for('tasks_list'))
 
     if request.method == 'POST':
@@ -496,7 +498,7 @@ def task_edit(task_id):
             deadline=deadline, assignee_ids=assignee_ids
         )
         log_activity(user.id, 'Updated task', 'Task', task_id, title)
-        flash('Task updated successfully.', 'success')
+        flash('Vazifa muvaffaqiyatli yangilandi.', 'success')
         return redirect(url_for('task_detail', task_id=task_id))
 
     # GET
@@ -542,7 +544,7 @@ def self_request():
             deadline=deadline, assignee_ids=[user.id]
         )
         log_activity(user.id, 'Submitted self-request', 'Task', new_id, title)
-        flash('Request submitted for verification.', 'success')
+        flash('So\'rov tasdiqlash uchun yuborildi.', 'success')
         return redirect(url_for('tasks_list'))
 
     # GET
@@ -709,7 +711,7 @@ def admin_create_user():
     new_id = create_user(name=name, role=role, telegram_id=telegram_id,
                          unit_id=unit_id, phone=phone, is_admin=is_admin)
     log_activity(g.current_user.id, 'Created user', 'User', new_id, name)
-    flash(f'User "{name}" created successfully.', 'success')
+    flash(f'"{name}" foydalanuvchisi muvaffaqiyatli yaratildi.', 'success')
     return redirect(url_for('admin_users'))
 
 
@@ -725,21 +727,21 @@ def admin_edit_user(user_id):
     is_admin = request.form.get('is_admin') == '1'
 
     if not name:
-        flash('Full name is required.', 'error')
+        flash('To\'liq ism kiritilishi shart.', 'error')
         return redirect(url_for('admin_users'))
 
     # Check telegram_id uniqueness if changed
     if telegram_id:
         existing = get_user_by_telegram_id_any(telegram_id)
         if existing and existing.id != user_id:
-            flash('A user with this Telegram ID already exists.', 'error')
+            flash('Bu Telegram ID bilan foydalanuvchi allaqachon mavjud.', 'error')
             return redirect(url_for('admin_users'))
 
     update_user(user_id, name, role, unit_id,
                 telegram_id=telegram_id if telegram_id else None,
                 phone=phone, is_admin=is_admin)
     log_activity(g.current_user.id, 'Updated user', 'User', user_id, name)
-    flash(f'User "{name}" updated successfully.', 'success')
+    flash(f'"{name}" foydalanuvchisi muvaffaqiyatli yangilandi.', 'success')
     return redirect(url_for('admin_users'))
 
 
@@ -778,12 +780,12 @@ def admin_create_unit():
     head_user_id = request.form.get('head_user_id', type=int)
 
     if not name:
-        flash('Unit name is required.', 'error')
+        flash('Bo\'lim nomi kiritilishi shart.', 'error')
         return redirect(url_for('admin_units'))
 
     new_id = create_unit(name, head_user_id)
     log_activity(g.current_user.id, 'Created unit', 'Unit', new_id, name)
-    flash(f'Unit "{name}" created successfully.', 'success')
+    flash(f'"{name}" bo\'limi muvaffaqiyatli yaratildi.', 'success')
     return redirect(url_for('admin_units'))
 
 
@@ -795,12 +797,12 @@ def admin_edit_unit(unit_id):
     head_user_id = request.form.get('head_user_id', type=int)
 
     if not name:
-        flash('Unit name is required.', 'error')
+        flash('Bo\'lim nomi kiritilishi shart.', 'error')
         return redirect(url_for('admin_units'))
 
     update_unit(unit_id, name, head_user_id)
     log_activity(g.current_user.id, 'Updated unit', 'Unit', unit_id, name)
-    flash(f'Unit "{name}" updated successfully.', 'success')
+    flash(f'"{name}" bo\'limi muvaffaqiyatli yangilandi.', 'success')
     return redirect(url_for('admin_units'))
 
 

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - TaskFlow{% endblock %}
+{% block title %}Boshqaruv paneli - TaskFlow{% endblock %}
 
 {% block content %}
 <!-- Greeting Section -->
 <div class="px-4 pt-6 pb-2">
 <p class="text-[#606e8a] dark:text-gray-400 text-sm font-medium">{{ current_date }}</p>
-<h1 class="text-[#111318] dark:text-white tracking-tight text-[32px] font-bold leading-tight">Welcome, {{ current_user.name }}</h1>
+<h1 class="text-[#111318] dark:text-white tracking-tight text-[32px] font-bold leading-tight">Xush kelibsiz, {{ current_user.name }}</h1>
 </div>
 <!-- Overview Stats Carousel -->
 <div class="flex overflow-x-auto gap-4 p-4 no-scrollbar snap-x">
@@ -18,7 +18,7 @@
 </div>
 </div>
 <div>
-<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Active Tasks</p>
+<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Faol vazifalar</p>
 <p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.active_tasks }}</p>
 </div>
 </div>
@@ -30,7 +30,7 @@
 </div>
 </div>
 <div>
-<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Completed</p>
+<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Bajarilgan</p>
 <p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.completed_tasks }}</p>
 </div>
 </div>
@@ -42,8 +42,8 @@
 </div>
 </div>
 <div>
-<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Deadlines</p>
-<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.deadlines_today }} Today</p>
+<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Muddatlar</p>
+<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.deadlines_today }} Bugun</p>
 </div>
 </div>
 </div>
@@ -51,8 +51,8 @@
 {% if current_user.role in ['Head', 'Deputy'] %}
 <div class="mt-2">
 <div class="flex items-center justify-between px-4 pb-2 pt-2">
-<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Team Workload</h3>
-<a href="{{ url_for('team_workload') }}" class="text-primary text-sm font-semibold hover:opacity-80">See All</a>
+<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Jamoa yuklamasi</h3>
+<a href="{{ url_for('team_workload') }}" class="text-primary text-sm font-semibold hover:opacity-80">Barchasi</a>
 </div>
 <div class="flex flex-col gap-3 px-4 mt-2">
 {% for staff in team_workload %}
@@ -70,7 +70,7 @@
 </div>
 <div class="flex flex-col flex-1">
 <p class="text-[#111318] dark:text-white text-base font-semibold leading-normal line-clamp-1">{{ staff.name }}</p>
-<p class="text-[#606e8a] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-1">{{ staff.unit_name or 'No Unit' }}</p>
+<p class="text-[#606e8a] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-1">{{ staff.unit_name or "Bo'lim yo'q" }}</p>
 </div>
 <div class="flex items-center gap-2">
 {% if staff.overload_flag %}
@@ -80,7 +80,7 @@
 {% if staff.task_count <= 3 %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300
 {% elif staff.task_count >= 7 %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300
 {% else %}bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300{% endif %}
-text-xs font-bold">{{ staff.task_count }} Tasks</span>
+text-xs font-bold">{{ staff.task_count }} vazifa</span>
 </div>
 </div>
 {% endfor %}
@@ -92,7 +92,7 @@ text-xs font-bold">{{ staff.task_count }} Tasks</span>
 {% if current_user.role == 'HeadOfUnit' %}
 <div class="mt-2">
 <div class="flex items-center justify-between px-4 pb-2 pt-2">
-<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">My Unit Staff</h3>
+<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Mening bo'lim xodimlarim</h3>
 </div>
 <div class="flex flex-col gap-3 px-4 mt-2">
 {% for staff in unit_staff %}
@@ -113,10 +113,10 @@ text-xs font-bold">{{ staff.task_count }} Tasks</span>
 <p class="text-[#111318] dark:text-white text-base font-semibold leading-normal line-clamp-1">{{ staff.name }}</p>
 <div class="flex items-center gap-2 mt-1">
 {% if staff.overdue_tasks and staff.overdue_tasks > 0 %}
-<span class="text-[10px] font-bold text-red-600 dark:text-red-400">{{ staff.overdue_tasks }} overdue</span>
+<span class="text-[10px] font-bold text-red-600 dark:text-red-400">{{ staff.overdue_tasks }} muddati o'tgan</span>
 <span class="text-gray-300 dark:text-gray-600">·</span>
 {% endif %}
-<span class="text-[10px] font-medium text-gray-500 dark:text-gray-400">{{ staff.completed_tasks }} done</span>
+<span class="text-[10px] font-medium text-gray-500 dark:text-gray-400">{{ staff.completed_tasks }} bajarilgan</span>
 </div>
 </div>
 <div class="flex items-center gap-2">
@@ -127,14 +127,14 @@ text-xs font-bold">{{ staff.task_count }} Tasks</span>
 {% if staff.task_count <= 3 %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300
 {% elif staff.task_count >= 7 %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300
 {% else %}bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300{% endif %}
-text-xs font-bold">{{ staff.task_count }} Active</span>
+text-xs font-bold">{{ staff.task_count }} faol</span>
 </div>
 </div>
 </a>
 {% else %}
 <div class="bg-white dark:bg-[#1A2230] p-8 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
 <span class="material-symbols-outlined text-[36px] text-gray-300 dark:text-gray-600 mb-2">group_off</span>
-<p class="text-gray-500 dark:text-gray-400 text-sm">No staff in your unit</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm">Bo'limingizda xodim yo'q</p>
 </div>
 {% endfor %}
 </div>
@@ -145,8 +145,8 @@ text-xs font-bold">{{ staff.task_count }} Active</span>
 {% if current_user.role in ['Head', 'Deputy'] %}
 <div class="mt-6">
 <div class="flex items-center justify-between px-4 pb-2 pt-2">
-<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Unit Performance</h3>
-<a href="{{ url_for('units_performance') }}" class="text-primary text-sm font-semibold hover:opacity-80">See All</a>
+<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Bo'limlar samaradorligi</h3>
+<a href="{{ url_for('units_performance') }}" class="text-primary text-sm font-semibold hover:opacity-80">Barchasi</a>
 </div>
 <div class="flex flex-col gap-3 px-4 mt-2">
 {% for unit in unit_performance %}
@@ -158,7 +158,7 @@ text-xs font-bold">{{ staff.task_count }} Active</span>
 </span>
 <span class="font-semibold text-sm dark:text-white">{{ unit.name }}</span>
 </div>
-<span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ unit.total_tasks }} Tasks</span>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ unit.total_tasks }} vazifa</span>
 </div>
 <div class="flex items-center gap-3">
 <div class="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -176,7 +176,7 @@ text-xs font-bold">{{ staff.task_count }} Active</span>
 {% if current_user.role == 'HeadOfUnit' and other_units %}
 <div class="mt-6">
 <div class="flex items-center justify-between px-4 pb-2 pt-2">
-<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Other Units</h3>
+<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Boshqa bo'limlar</h3>
 </div>
 <div class="flex flex-col gap-3 px-4 mt-2">
 {% for unit in other_units %}
@@ -189,10 +189,10 @@ text-xs font-bold">{{ staff.task_count }} Active</span>
 <span class="font-semibold text-sm dark:text-white">{{ unit.name }}</span>
 </div>
 <div class="flex items-center gap-3">
-<span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ unit.total_tasks }} tasks</span>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ unit.total_tasks }} vazifa</span>
 <span class="text-xs font-bold px-2 py-0.5 rounded-full
 {% if unit.active_tasks > 0 %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300
-{% else %}bg-gray-100 dark:bg-gray-700 text-gray-500{% endif %}">{{ unit.active_tasks }} active</span>
+{% else %}bg-gray-100 dark:bg-gray-700 text-gray-500{% endif %}">{{ unit.active_tasks }} faol</span>
 </div>
 </div>
 </div>
@@ -209,8 +209,8 @@ text-xs font-bold">{{ staff.task_count }} Active</span>
 <span class="material-symbols-outlined text-[20px]">analytics</span>
 </div>
 <div class="flex-1">
-<p class="text-sm font-bold text-[#111318] dark:text-white">Reports</p>
-<p class="text-xs text-gray-500 dark:text-gray-400">View task statistics and performance</p>
+<p class="text-sm font-bold text-[#111318] dark:text-white">Hisobotlar</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">Vazifa statistikasi va samaradorlikni ko'ring</p>
 </div>
 <span class="material-symbols-outlined text-gray-400">chevron_right</span>
 </a>

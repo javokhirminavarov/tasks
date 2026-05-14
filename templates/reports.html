@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Reports - TaskFlow{% endblock %}
+{% block title %}Hisobotlar - TaskFlow{% endblock %}
 
 {% block content %}
 <div class="px-4 pt-6 pb-8">
@@ -9,33 +9,33 @@
         <a href="{{ url_for('dashboard') }}" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <span class="material-symbols-outlined text-gray-600 dark:text-gray-400">arrow_back</span>
         </a>
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Reports</h1>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Hisobotlar</h1>
     </div>
 
     <!-- Summary Cards -->
     <div class="grid grid-cols-2 gap-3 mb-6">
         <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
             <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ data.total }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Total Tasks</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Jami vazifalar</p>
         </div>
         <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
             <p class="text-2xl font-bold text-green-600">{{ data.completed }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Completed</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Bajarilgan</p>
         </div>
         <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
             <p class="text-2xl font-bold text-red-600">{{ data.overdue }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Overdue</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Muddati o'tgan</p>
         </div>
         <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 text-center">
             <p class="text-2xl font-bold text-primary">{{ data.completion_rate }}%</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Completion Rate</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Bajarish darajasi</p>
         </div>
     </div>
 
     <!-- By Status -->
     <div class="bg-white dark:bg-[#1A2230] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
         <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-            <h2 class="text-sm font-bold text-gray-900 dark:text-white">Tasks by Status</h2>
+            <h2 class="text-sm font-bold text-gray-900 dark:text-white">Holat bo'yicha vazifalar</h2>
         </div>
         <div class="divide-y divide-gray-100 dark:divide-gray-800">
             {% for row in data.by_status %}
@@ -46,7 +46,7 @@
                         {% elif row.status == 'In Progress' %}bg-blue-500
                         {% elif row.status == 'Pending Approval' %}bg-yellow-500
                         {% elif row.status == 'Completed' %}bg-green-500{% endif %}"></div>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.status }}</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.status|status_uz }}</span>
                 </div>
                 <span class="text-sm font-bold text-gray-900 dark:text-white">{{ row.count }}</span>
             </div>
@@ -57,7 +57,7 @@
     <!-- By Priority -->
     <div class="bg-white dark:bg-[#1A2230] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
         <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-            <h2 class="text-sm font-bold text-gray-900 dark:text-white">Tasks by Priority</h2>
+            <h2 class="text-sm font-bold text-gray-900 dark:text-white">Muhimligi bo'yicha vazifalar</h2>
         </div>
         <div class="divide-y divide-gray-100 dark:divide-gray-800">
             {% for row in data.by_priority %}
@@ -68,7 +68,7 @@
                         {% elif row.priority == 'High' %}bg-orange-500
                         {% elif row.priority == 'Normal' %}bg-blue-500
                         {% elif row.priority == 'Low' %}bg-gray-400{% endif %}"></div>
-                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.priority }}</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.priority|priority_uz }}</span>
                 </div>
                 <span class="text-sm font-bold text-gray-900 dark:text-white">{{ row.count }}</span>
             </div>
@@ -79,7 +79,7 @@
     <!-- By User -->
     <div class="bg-white dark:bg-[#1A2230] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
         <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-            <h2 class="text-sm font-bold text-gray-900 dark:text-white">Tasks by User</h2>
+            <h2 class="text-sm font-bold text-gray-900 dark:text-white">Foydalanuvchi bo'yicha vazifalar</h2>
         </div>
         <div class="divide-y divide-gray-100 dark:divide-gray-800">
             {% for row in data.by_user %}
@@ -87,14 +87,14 @@
                 <div class="flex items-center justify-between mb-1">
                     <div>
                         <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ row.name }}</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">{{ row.role }}</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">{{ row.role|role_uz }}</span>
                     </div>
                     <span class="text-sm font-bold text-gray-900 dark:text-white">{{ row.total }}</span>
                 </div>
                 <div class="flex gap-2">
-                    <span class="text-xs text-green-600 font-medium">{{ row.completed }} done</span>
+                    <span class="text-xs text-green-600 font-medium">{{ row.completed }} bajarilgan</span>
                     {% if row.overdue > 0 %}
-                    <span class="text-xs text-red-600 font-medium">{{ row.overdue }} overdue</span>
+                    <span class="text-xs text-red-600 font-medium">{{ row.overdue }} muddati o'tgan</span>
                     {% endif %}
                     {% if row.unit_name %}
                     <span class="text-xs text-gray-400">{{ row.unit_name }}</span>
