@@ -72,6 +72,18 @@
             <p class="text-xs text-gray-400">Bu ilovaga faqat Telegram bot orqali kirish mumkin. Botni oching va ilova tugmasini bosing.</p>
         </div>
 
+        <!-- Pending Approval State (hidden by default) -->
+        <div id="pendingState" class="hidden bg-white rounded-xl shadow-sm border border-amber-100 p-8 text-center">
+            <div class="inline-flex items-center justify-center size-12 rounded-full bg-amber-50 text-amber-600 mb-4">
+                <span class="material-symbols-outlined text-[28px]">hourglass_top</span>
+            </div>
+            <p class="text-sm text-gray-800 font-semibold mb-2">Administrator tasdiqlashini kuting</p>
+            <p class="text-xs text-gray-500 leading-relaxed">
+                Sizning so'rovingiz administratorga yuborildi.
+                U sizni faollashtirgach, ushbu ilovani qaytadan oching.
+            </p>
+        </div>
+
         <p class="text-center text-xs text-[#606e8a] mt-6">Vazifalarni boshqarish tizimi</p>
     </div>
 
@@ -92,6 +104,12 @@
             document.getElementById('statusText').textContent = 'Telegram talab qilinadi';
         }
 
+        function showPending() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('pendingState').classList.remove('hidden');
+            document.getElementById('statusText').textContent = 'Tasdiqlash kutilmoqda';
+        }
+
         if (tg && tg.initData) {
             // Running inside Telegram Mini App - authenticate
             tg.ready();
@@ -106,6 +124,8 @@
             .then(({ status, data }) => {
                 if (data.success && data.redirect) {
                     window.location.href = data.redirect;
+                } else if (data.pending) {
+                    showPending();
                 } else {
                     showError(data.error || 'Tasdiqlash amalga oshmadi');
                 }
