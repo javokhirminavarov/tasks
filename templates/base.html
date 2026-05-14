@@ -157,8 +157,8 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Bottom Navigation (always visible) -->
-    {% if current_user %}
+    <!-- Bottom Navigation (hidden on full-screen form pages with their own action bar) -->
+    {% if current_user and request.endpoint not in ('task_create', 'task_edit', 'self_request') %}
     <div class="fixed bottom-0 w-full bg-white dark:bg-[#101622] border-t border-gray-200 dark:border-gray-800 pb-safe pt-2 px-6 z-50">
         <div class="flex justify-between items-end pb-4">
 
