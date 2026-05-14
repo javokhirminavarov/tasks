@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ task.title }} - Topshiriqlar nazorati{% endblock %}
+{% block page_title %}{{ task.title|truncate(28) }}{% endblock %}
 
 {% block content %}
 <div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark">

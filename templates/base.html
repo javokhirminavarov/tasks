@@ -77,7 +77,7 @@
             <div class="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary">
                 <span class="material-symbols-outlined">dashboard</span>
             </div>
-            <span class="text-lg font-bold tracking-tight dark:text-white">Topshiriqlar nazorati</span>
+            <span class="text-lg font-bold tracking-tight dark:text-white truncate max-w-[60vw]">{% block page_title %}Topshiriqlar nazorati{% endblock %}</span>
         </div>
 
         <div class="flex items-center justify-end gap-3">
@@ -178,13 +178,9 @@
                 <span class="text-[10px] font-medium">Boshqaruv</span>
             </a>
             {% endif %}
-            <a href="{{ url_for('settings') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'settings' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
-                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">settings</span>
-                <span class="text-[10px] font-medium">Sozlamalar</span>
-            </a>
 
             {% elif current_user.role == 'HeadOfUnit' %}
-            <!-- HeadOfUnit Nav: Overview + Tasks + Admin? + Settings -->
+            <!-- HeadOfUnit Nav: Overview + Tasks + Admin -->
             <a href="{{ url_for('dashboard') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'dashboard' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">dashboard</span>
                 <span class="text-[10px] font-medium">Umumiy</span>
@@ -199,13 +195,9 @@
                 <span class="text-[10px] font-medium">Boshqaruv</span>
             </a>
             {% endif %}
-            <a href="{{ url_for('settings') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'settings' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
-                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">settings</span>
-                <span class="text-[10px] font-medium">Sozlamalar</span>
-            </a>
 
             {% else %}
-            <!-- Staff/Intern Nav: Home + Admin? + Settings -->
+            <!-- Staff/Intern Nav: Home + Admin -->
             <a href="{{ url_for('tasks_list') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'tasks_list' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
                 <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">home</span>
                 <span class="text-[10px] font-medium">Bosh sahifa</span>
@@ -216,10 +208,6 @@
                 <span class="text-[10px] font-medium">Boshqaruv</span>
             </a>
             {% endif %}
-            <a href="{{ url_for('settings') }}" class="flex flex-col items-center gap-1 w-16 {% if request.endpoint == 'settings' %}text-primary{% else %}text-[#606e8a] dark:text-gray-400 hover:text-primary dark:hover:text-primary{% endif %} group transition-colors">
-                <span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">settings</span>
-                <span class="text-[10px] font-medium">Sozlamalar</span>
-            </a>
             {% endif %}
 
         </div>

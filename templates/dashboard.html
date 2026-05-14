@@ -1,52 +1,74 @@
 {% extends "base.html" %}
 
 {% block title %}Boshqaruv paneli - Topshiriqlar nazorati{% endblock %}
+{% block page_title %}Boshqaruv paneli{% endblock %}
 
 {% block content %}
-<!-- Greeting Section -->
-<div class="px-4 pt-6 pb-2">
-<p class="text-[#606e8a] dark:text-gray-400 text-sm font-medium">{{ current_date }}</p>
-<h1 class="text-[#111318] dark:text-white tracking-tight text-[32px] font-bold leading-tight">Xush kelibsiz, {{ current_user.name }}</h1>
+{% if current_user.role == 'HeadOfUnit' %}
+<!-- HeadOfUnit KPI grid: jamoa ko'rsatkichlari -->
+<div class="grid grid-cols-2 gap-3 p-4">
+    <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Faol xodimlar</span>
+            <span class="material-symbols-outlined text-primary text-[20px]">group</span>
+        </div>
+        <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.active_members }}</span>
+    </div>
+    <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bajarish darajasi</span>
+            <span class="material-symbols-outlined text-green-600 text-[20px]">trending_up</span>
+        </div>
+        <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.completion_rate }}%</span>
+    </div>
+    <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wider">Muddati o'tgan</span>
+            <span class="material-symbols-outlined text-red-500 text-[20px]">warning</span>
+        </div>
+        <span class="text-2xl font-bold text-red-600 dark:text-red-400">{{ stats.overdue_tasks }}</span>
+    </div>
+    <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ortiqcha yuk</span>
+            <span class="material-symbols-outlined text-orange-500 text-[20px]">flag</span>
+        </div>
+        <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.overloaded_count }}</span>
+    </div>
 </div>
-<!-- Overview Stats Carousel -->
-<div class="flex overflow-x-auto gap-4 p-4 no-scrollbar snap-x">
-<!-- Card 1 -->
-<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-white dark:bg-[#1A2230] shadow-sm border border-gray-100 dark:border-gray-800 snap-center">
-<div class="flex items-center justify-between">
-<div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-primary">
-<span class="material-symbols-outlined text-[20px]">assignment</span>
+{% else %}
+<!-- Head/Deputy KPI grid -->
+<div class="grid grid-cols-2 gap-3 p-4">
+    <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Faol vazifalar</span>
+            <span class="material-symbols-outlined text-primary text-[20px]">assignment</span>
+        </div>
+        <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.active_tasks }}</span>
+    </div>
+    <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bajarilgan</span>
+            <span class="material-symbols-outlined text-green-600 text-[20px]">check_circle</span>
+        </div>
+        <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.completed_tasks }}</span>
+    </div>
+    <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wider">Muddati o'tgan</span>
+            <span class="material-symbols-outlined text-red-500 text-[20px]">warning</span>
+        </div>
+        <span class="text-2xl font-bold text-red-600 dark:text-red-400">{{ stats.overdue_tasks }}</span>
+    </div>
+    <div class="bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bugungi muddatlar</span>
+            <span class="material-symbols-outlined text-orange-600 text-[20px]">alarm</span>
+        </div>
+        <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.deadlines_today }}</span>
+    </div>
 </div>
-</div>
-<div>
-<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Faol vazifalar</p>
-<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.active_tasks }}</p>
-</div>
-</div>
-<!-- Card 2 -->
-<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-white dark:bg-[#1A2230] shadow-sm border border-gray-100 dark:border-gray-800 snap-center">
-<div class="flex items-center justify-between">
-<div class="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-600">
-<span class="material-symbols-outlined text-[20px]">check_circle</span>
-</div>
-</div>
-<div>
-<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Bajarilgan</p>
-<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.completed_tasks }}</p>
-</div>
-</div>
-<!-- Card 4 -->
-<div class="flex min-w-[160px] flex-col gap-3 rounded-xl p-5 bg-white dark:bg-[#1A2230] shadow-sm border border-gray-100 dark:border-gray-800 snap-center">
-<div class="flex items-center justify-between">
-<div class="p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-orange-600">
-<span class="material-symbols-outlined text-[20px]">alarm</span>
-</div>
-</div>
-<div>
-<p class="text-[#606e8a] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Muddatlar</p>
-<p class="text-[#111318] dark:text-white text-2xl font-bold mt-1">{{ stats.deadlines_today }} Bugun</p>
-</div>
-</div>
-</div>
+{% endif %}
 <!-- Team Workload Section (Head/Deputy) -->
 {% if current_user.role in ['Head', 'Deputy'] %}
 <div class="mt-2">
@@ -215,5 +237,44 @@ text-xs font-bold">{{ staff.task_count }} faol</span>
 <span class="material-symbols-outlined text-gray-400">chevron_right</span>
 </a>
 </div>
+{% endif %}
+
+<!-- Mening biriktirgan topshiriqlarim (Head/Deputy) -->
+{% if current_user.role in ['Head', 'Deputy'] and assigned_tasks %}
+<div class="mt-2 mb-24">
+    <div class="flex items-center justify-between px-4 pb-2 pt-2">
+        <h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-tight">Mening biriktirgan topshiriqlarim</h3>
+    </div>
+    <div class="flex flex-col gap-3 px-4 mt-2">
+        {% for task in assigned_tasks %}
+        <a href="{{ url_for('task_detail', task_id=task.id) }}" class="block bg-white dark:bg-[#1A2230] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 hover:border-primary active:scale-[0.99] transition-all">
+            <div class="flex justify-between items-start gap-3 mb-2">
+                <h4 class="text-sm font-bold text-slate-900 dark:text-white leading-snug line-clamp-2">{{ task.title }}</h4>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold shrink-0
+                    {% if task.status == 'In Progress' %}bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300
+                    {% elif task.status == 'Not Started' %}bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400
+                    {% elif task.status == 'Pending Approval' %}bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300
+                    {% else %}bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-300{% endif %}">
+                    {{ task.status|status_uz }}
+                </span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-600 dark:text-slate-400 truncate">
+                    👤 {{ task.assignee_names or "Bajaruvchi yo'q" }}
+                </span>
+                <span class="text-slate-500 dark:text-slate-400">📅 {{ task.deadline }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- FAB: Head/Deputy can create tasks from anywhere on dashboard -->
+{% if current_user.role in ['Head', 'Deputy'] %}
+<a href="{{ url_for('task_create') }}"
+   class="fixed bottom-24 right-6 z-40 flex items-center justify-center size-14 rounded-full bg-primary text-white shadow-xl hover:bg-blue-600 active:scale-95 transition-all">
+    <span class="material-symbols-outlined text-[32px]">add</span>
+</a>
 {% endif %}
 {% endblock %}
