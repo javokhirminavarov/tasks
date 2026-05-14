@@ -22,6 +22,10 @@ from models import (get_user_by_id, get_user_by_telegram_id, get_user_by_telegra
                     get_unit_staff_list)
 from auth import login_required, admin_required, role_required, validate_telegram_init_data
 from translations import register_filters, status_uz
+from notifications import (
+    notify_task_assigned, notify_verifier_self_request,
+    notify_pending_approval, notify_status_changed,
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -383,6 +387,21 @@ def task_update_status(task_id):
 
     update_task_status(task_id, new_status, completion_note if new_status == 'Completed' else None)
     log_activity(user.id, f'Changed status to {new_status}', 'Task', task_id, task.title)
+
+    # Telegram notifications for transitions that matter to the other side.
+    if new_status == 'Pending Approval':
+        approver = get_user_by_id(task.assignor_id)
+        assignee_name = task.assignees[0].name if task.assignees else user.name
+        if approver:
+            notify_pending_approval(approver, task, assignee_name)
+    elif new_status == 'Completed':
+        for assignee in task.assignees:
+            notify_status_changed(assignee, task, new_status)
+    elif new_status == 'In Progress' and task.status == 'Pending Approval':
+        # Approver rejected and bumped back to In Progress; tell assignees.
+        for assignee in task.assignees:
+            notify_status_changed(assignee, task, new_status)
+
     flash(f'Vazifa holati "{status_uz(new_status)}" ga o\'zgartirildi.', 'success')
     return redirect(url_for('task_detail', task_id=task_id))
 
@@ -470,6 +489,9 @@ def task_create():
             deadline=deadline, assignee_ids=assignee_ids
         )
         log_activity(user.id, 'Created task', 'Task', new_id, title)
+        new_task = get_task_by_id(new_id)
+        if new_task:
+            notify_task_assigned(new_task.assignees, new_task, user.name)
         flash('Vazifa muvaffaqiyatli yaratildi.', 'success')
         return redirect(url_for('tasks_list'))
 
@@ -528,12 +550,18 @@ def task_edit(task_id):
             return render_template('tasks/create_task.html',
                                    task=task, users=users_list, form=request.form)
 
+        previous_assignee_ids = set(task.assignee_ids or [])
         update_task(
             task_id=task_id, title=title, description=description,
             task_type='Ad-hoc', project_id=None, priority=priority,
             deadline=deadline, assignee_ids=assignee_ids
         )
         log_activity(user.id, 'Updated task', 'Task', task_id, title)
+        updated = get_task_by_id(task_id)
+        if updated:
+            new_only = [a for a in updated.assignees if a.id not in previous_assignee_ids]
+            if new_only:
+                notify_task_assigned(new_only, updated, user.name)
         flash('Vazifa muvaffaqiyatli yangilandi.', 'success')
         return redirect(url_for('task_detail', task_id=task_id))
 
@@ -580,6 +608,10 @@ def self_request():
             deadline=deadline, assignee_ids=[user.id]
         )
         log_activity(user.id, 'Submitted self-request', 'Task', new_id, title)
+        new_task = get_task_by_id(new_id)
+        verifier = get_user_by_id(verifier_id)
+        if new_task and verifier:
+            notify_verifier_self_request(verifier, new_task, user.name)
         flash('So\'rov tasdiqlash uchun yuborildi.', 'success')
         return redirect(url_for('tasks_list'))
 
