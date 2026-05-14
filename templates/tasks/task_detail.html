@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ task.title }} - TaskFlow{% endblock %}
+{% block title %}{{ task.title }} - Topshiriqlar nazorati{% endblock %}
 
 {% block content %}
 <div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark">
@@ -143,9 +143,42 @@
     <!-- Completion Note -->
     {% if task.completion_note %}
     <div class="px-4 pb-4">
-        <h3 class="text-sm font-semibold text-green-700 dark:text-green-400 mb-2">Bajarish izohi</h3>
-        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
-            <p class="text-sm text-green-800 dark:text-green-300 whitespace-pre-wrap leading-relaxed">{{ task.completion_note }}</p>
+        <h3 class="text-sm font-semibold {% if task.status == 'Completed' %}text-green-700 dark:text-green-400{% else %}text-amber-700 dark:text-amber-400{% endif %} mb-2">
+            Bajaruvchi izohi
+        </h3>
+        <div class="rounded-xl p-4
+            {% if task.status == 'Completed' %}bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800
+            {% else %}bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800{% endif %}">
+            <p class="text-sm whitespace-pre-wrap leading-relaxed
+                {% if task.status == 'Completed' %}text-green-800 dark:text-green-300
+                {% else %}text-amber-900 dark:text-amber-200{% endif %}">{{ task.completion_note }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Attachments -->
+    {% if attachments %}
+    <div class="px-4 pb-4">
+        <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-2">Ilovalar</h3>
+        <div class="flex flex-col gap-2">
+            {% for att in attachments %}
+            <a href="{{ url_for('task_attachment_download', task_id=task.id, attachment_id=att.id) }}"
+               class="flex items-center gap-3 bg-slate-50 dark:bg-[#1e2736] rounded-lg p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <span class="material-symbols-outlined text-primary shrink-0">
+                    {% if att.mime_type and att.mime_type.startswith('image/') %}image
+                    {% elif att.mime_type == 'application/pdf' %}picture_as_pdf
+                    {% else %}description{% endif %}
+                </span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ att.original_name }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        {{ (att.size_bytes / 1024)|round(0, 'floor')|int }} KB
+                        {% if att.uploader_name %} &middot; {{ att.uploader_name }}{% endif %}
+                    </p>
+                </div>
+                <span class="material-symbols-outlined text-slate-400">download</span>
+            </a>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
