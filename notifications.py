@@ -86,20 +86,25 @@ def _fmt_status(s):
     return _STATUS_UZ.get(s, s or '')
 
 
-def notify_task_assigned(assignees, task, assignor_name):
-    """Notify each assignee that a new task is on their plate.
+def _esc(text):
+    """Escape HTML special chars for Telegram parse_mode=HTML."""
+    if not text:
+        return ''
+    return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
-    assignees: iterable of dicts/DotDicts with .telegram_id
-    task: dict-like with title, priority, deadline
-    assignor_name: display name of who assigned the task
-    """
-    text = (
-        "📋 <b>Sizga yangi vazifa biriktirildi</b>\n\n"
-        f"«{task['title']}»\n"
-        f"⚡ Muhimligi: <b>{_fmt_priority(task.get('priority'))}</b>\n"
-        f"📅 Muddat: <b>{task.get('deadline', '—')}</b>\n"
-        f"👤 Biriktirgan: {assignor_name}"
-    )
+
+def notify_task_assigned(assignees, task, assignor_name):
+    """Notify each assignee that a new task is on their plate."""
+    parts = [
+        "📋 <b>Sizga yangi vazifa biriktirildi</b>\n",
+        f"«{_esc(task['title'])}»",
+    ]
+    if task.get('description'):
+        parts.append(f"📝 Tavsif: {_esc(task['description'])}")
+    parts.append(f"⚡ Muhimligi: <b>{_esc(_fmt_priority(task.get('priority')))}</b>")
+    parts.append(f"📅 Muddat: <b>{_esc(task.get('deadline', '—'))}</b>")
+    parts.append(f"👤 Biriktirgan: {_esc(assignor_name)}")
+    text = '\n'.join(parts)
     for a in assignees:
         send_message(a.get('telegram_id') if hasattr(a, 'get') else a['telegram_id'], text)
 
@@ -116,15 +121,31 @@ def notify_verifier_self_request(verifier, task, requester_name):
     send_message(verifier.get('telegram_id') if hasattr(verifier, 'get') else verifier['telegram_id'], text)
 
 
-def notify_pending_approval(approver, task, assignee_name):
+def notify_pending_approval(approver, task, assignee_name, completion_note=None):
     """Notify the assignor / approver that a task was submitted and needs approval."""
-    text = (
-        "✅ <b>Vazifa tasdiqlashga yuborildi</b>\n\n"
-        f"«{task['title']}»\n"
-        f"👤 Bajaruvchi: {assignee_name}\n"
-        f"📅 Muddat: <b>{task.get('deadline', '—')}</b>"
-    )
+    parts = [
+        "✅ <b>Vazifa tasdiqlashga yuborildi</b>\n",
+        f"«{_esc(task['title'])}»",
+        f"👤 Bajaruvchi: {_esc(assignee_name)}",
+        f"📅 Muddat: <b>{_esc(task.get('deadline', '—'))}</b>",
+    ]
+    if completion_note:
+        parts.append(f"\n💬 Bajaruvchi izohi:\n{_esc(completion_note)}")
+    text = '\n'.join(parts)
     send_message(approver.get('telegram_id') if hasattr(approver, 'get') else approver['telegram_id'], text)
+
+
+def notify_task_comment(recipients, task, commenter_name, comment_text):
+    """Notify task participants that a new comment was added."""
+    snippet = comment_text if len(comment_text) <= 200 else comment_text[:200] + '…'
+    text = (
+        "💬 <b>Vazifaga yangi izoh</b>\n\n"
+        f"«{_esc(task['title'])}»\n"
+        f"👤 Yozgan: {_esc(commenter_name)}\n\n"
+        f"{_esc(snippet)}"
+    )
+    for r in recipients:
+        send_message(r.get('telegram_id') if hasattr(r, 'get') else r['telegram_id'], text)
 
 
 def notify_status_changed(recipient, task, new_status):

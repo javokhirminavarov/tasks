@@ -32,6 +32,37 @@ TYPE_UZ = {
 }
 
 
+ACTION_UZ = {
+    'Created task': 'vazifa yaratdi',
+    'Updated task': 'vazifani yangiladi',
+    'Deleted task': 'vazifani o\'chirdi',
+    'Added comment': 'izoh qoldirdi',
+    'Submitted self-request': 'o\'zi uchun so\'rov yubordi',
+    'Created user': 'foydalanuvchi qo\'shdi',
+    'Updated user': 'foydalanuvchi ma\'lumotlarini yangiladi',
+    'Created unit': 'bo\'lim yaratdi',
+    'Updated unit': 'bo\'lim ma\'lumotlarini yangiladi',
+    'Demoted other admins': 'boshqa adminlardan huquq olib tashladi',
+}
+
+
+def action_uz(value):
+    if not value:
+        return ''
+    if value in ACTION_UZ:
+        return ACTION_UZ[value]
+    # "Changed status to <STATUS>" → translate the status part
+    if value.startswith('Changed status to '):
+        en_status = value[len('Changed status to '):]
+        return f"vazifa holatini \"{STATUS_UZ.get(en_status, en_status)}\" ga o'zgartirdi"
+    # "Activated user" / "Deactivated user" style
+    if value == 'Activated user':
+        return 'foydalanuvchini faollashtirdi'
+    if value == 'Deactivated user':
+        return 'foydalanuvchini faolsizlantirdi'
+    return value
+
+
 def role_uz(value):
     return ROLE_UZ.get(value, value or '')
 
@@ -53,3 +84,4 @@ def register_filters(app):
     app.jinja_env.filters['status_uz'] = status_uz
     app.jinja_env.filters['priority_uz'] = priority_uz
     app.jinja_env.filters['type_uz'] = type_uz
+    app.jinja_env.filters['action_uz'] = action_uz

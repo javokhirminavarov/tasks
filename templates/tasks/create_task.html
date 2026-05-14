@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ 'Vazifani tahrirlash' if task else 'Vazifa yaratish' }} - TaskFlow{% endblock %}
+{% block title %}{{ 'Vazifani tahrirlash' if task else 'Vazifa yaratish' }} - Topshiriqlar nazorati{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -25,7 +25,7 @@
 
 <!-- Main Scrollable Form Area -->
 <main class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-24">
-    <form id="task-form" method="POST"
+    <form id="task-form" method="POST" enctype="multipart/form-data"
           action="{{ url_for('task_edit', task_id=task.id) if task else url_for('task_create') }}">
 
         <!-- Title Input -->
@@ -130,15 +130,21 @@
                           placeholder="Tafsilotlar, izohlar yoki havolalar...">{{ (form.get('description', '') if form else (task.description if task else '')) }}</textarea>
             </div>
 
-            <!-- File Upload (disabled placeholder) -->
+            <!-- File Upload -->
             <div class="flex flex-col gap-2 pb-6">
-                <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Ilovalar</label>
-                <div class="w-full rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-6 flex flex-col items-center justify-center gap-2 opacity-50 cursor-not-allowed">
-                    <div class="p-3 bg-white dark:bg-[#1e2736] rounded-full shadow-sm text-slate-400">
+                <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Ilovalar (maks. 1 MB)</label>
+                <label for="attachments-input"
+                       class="w-full rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-5 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
+                    <div class="p-3 bg-white dark:bg-[#1e2736] rounded-full shadow-sm text-primary">
                         <span class="material-symbols-outlined">cloud_upload</span>
                     </div>
-                    <p class="text-sm font-medium text-slate-500">Fayl yuklash tez orada qo'shiladi</p>
-                </div>
+                    <p class="text-sm font-medium text-slate-700 dark:text-slate-200">Fayl tanlash</p>
+                    <p class="text-[11px] text-slate-400 text-center">Rasm, PDF yoki Office hujjat &middot; har biri maks. 1 MB</p>
+                </label>
+                <input id="attachments-input" name="attachments" type="file" multiple
+                       accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,image/*,application/pdf"
+                       class="hidden" onchange="renderAttachmentList()"/>
+                <ul id="attachments-list" class="flex flex-col gap-1 text-xs text-slate-600 dark:text-slate-300"></ul>
             </div>
 
         </div>
@@ -179,6 +185,20 @@ function updateAssigneeTags() {
         span.className = 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium';
         span.textContent = nameEl.textContent;
         container.appendChild(span);
+    });
+}
+
+function renderAttachmentList() {
+    const input = document.getElementById('attachments-input');
+    const list = document.getElementById('attachments-list');
+    list.innerHTML = '';
+    Array.from(input.files).forEach(function(f) {
+        const li = document.createElement('li');
+        const kb = (f.size / 1024).toFixed(0);
+        const tooBig = f.size > 1024 * 1024;
+        li.className = 'flex items-center gap-2 ' + (tooBig ? 'text-red-600 dark:text-red-400' : '');
+        li.textContent = '• ' + f.name + ' (' + kb + ' KB)' + (tooBig ? ' — 1 MB dan oshib ketdi' : '');
+        list.appendChild(li);
     });
 }
 </script>

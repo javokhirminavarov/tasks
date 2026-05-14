@@ -100,6 +100,19 @@ def init_db():
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         );
+
+        CREATE TABLE IF NOT EXISTS task_attachments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL,
+            stored_name TEXT NOT NULL,
+            original_name TEXT NOT NULL,
+            mime_type TEXT,
+            size_bytes INTEGER NOT NULL,
+            uploaded_by INTEGER NOT NULL,
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+            FOREIGN KEY (uploaded_by) REFERENCES users(id)
+        );
     """)
     conn.commit()
 
@@ -762,6 +775,47 @@ def add_comment(task_id, user_id, comment_text):
     conn.commit()
     conn.close()
     return comment_id
+
+
+def add_task_attachment(task_id, stored_name, original_name, mime_type, size_bytes, uploaded_by):
+    """Persist a task attachment record. Returns the new attachment id."""
+    conn = get_db()
+    cur = conn.execute(
+        """INSERT INTO task_attachments
+           (task_id, stored_name, original_name, mime_type, size_bytes, uploaded_by)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (task_id, stored_name, original_name, mime_type, size_bytes, uploaded_by),
+    )
+    attachment_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return attachment_id
+
+
+def get_task_attachments(task_id):
+    """List attachments for a task with uploader name."""
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT a.*, u.name as uploader_name
+           FROM task_attachments a
+           LEFT JOIN users u ON a.uploaded_by = u.id
+           WHERE a.task_id = ?
+           ORDER BY a.uploaded_at ASC""",
+        (task_id,),
+    ).fetchall()
+    conn.close()
+    return [DotDict(dict(r)) for r in rows]
+
+
+def get_attachment(attachment_id):
+    """Fetch a single attachment row."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM task_attachments WHERE id = ?",
+        (attachment_id,),
+    ).fetchone()
+    conn.close()
+    return DotDict(dict(row)) if row else None
 
 
 def log_activity(user_id, action, entity_type=None, entity_id=None, details=None):

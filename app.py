@@ -1,7 +1,9 @@
 import os
 import math
+import secrets
 from datetime import date, datetime
-from flask import Flask, render_template, request, redirect, url_for, session, g, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, g, flash, jsonify, send_from_directory, abort
+from werkzeug.utils import secure_filename
 from models import (get_user_by_id, get_user_by_telegram_id, get_user_by_telegram_id_any,
                     bootstrap_admin_from_env, register_pending_user,
                     get_other_admins, demote_other_admins,
@@ -11,6 +13,7 @@ from models import (get_user_by_id, get_user_by_telegram_id, get_user_by_telegra
                     get_task_by_id, get_assignable_users, get_verifiers_for_user,
                     create_task, update_task, update_task_status, delete_task,
                     get_task_comments, add_comment,
+                    add_task_attachment, get_task_attachments, get_attachment,
                     log_activity, get_db, init_db,
                     get_all_users, create_user, update_user, toggle_user_active,
                     get_all_units, get_unit_by_id,
@@ -24,13 +27,81 @@ from auth import login_required, admin_required, role_required, validate_telegra
 from translations import register_filters, status_uz
 from notifications import (
     notify_task_assigned, notify_verifier_self_request,
-    notify_pending_approval, notify_status_changed,
+    notify_pending_approval, notify_status_changed, notify_task_comment,
 )
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 register_filters(app)
+
+# --- File uploads ---
+MAX_UPLOAD_BYTES = 1 * 1024 * 1024  # 1 MB
+app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_BYTES
+
+ALLOWED_EXTENSIONS = {
+    'jpg', 'jpeg', 'png', 'gif', 'webp',
+    'pdf',
+    'doc', 'docx', 'xls', 'xlsx',
+}
+
+# Attachments live next to the SQLite DB so they share the Railway volume.
+_DATABASE_PATH = os.environ.get(
+    'DATABASE_PATH',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db'),
+)
+UPLOAD_DIR = os.path.join(os.path.dirname(_DATABASE_PATH), 'attachments')
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+def _allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def _save_uploads(task_id, files, user_id):
+    """Save each uploaded file under UPLOAD_DIR/<task_id>/ and DB-record it.
+
+    Skips empty inputs. Returns a list of (status, original_name, message) tuples
+    so the caller can flash details about rejected files.
+    """
+    if not files:
+        return []
+    task_dir = os.path.join(UPLOAD_DIR, str(task_id))
+    os.makedirs(task_dir, exist_ok=True)
+    results = []
+    for f in files:
+        if not f or not f.filename:
+            continue
+        original = f.filename
+        if not _allowed_file(original):
+            results.append(('rejected', original, 'fayl turi qabul qilinmaydi'))
+            continue
+        safe = secure_filename(original) or 'fayl'
+        ext = safe.rsplit('.', 1)[1].lower() if '.' in safe else ''
+        stored_name = f"{secrets.token_hex(8)}_{safe}"
+        dest = os.path.join(task_dir, stored_name)
+        f.save(dest)
+        size = os.path.getsize(dest)
+        if size == 0:
+            os.remove(dest)
+            results.append(('rejected', original, 'bo\'sh fayl'))
+            continue
+        add_task_attachment(
+            task_id=task_id,
+            stored_name=stored_name,
+            original_name=original,
+            mime_type=(f.mimetype or '').strip() or None,
+            size_bytes=size,
+            uploaded_by=user_id,
+        )
+        results.append(('ok', original, None))
+    return results
+
+
+@app.errorhandler(413)
+def handle_too_large(_e):
+    flash('Fayl hajmi 1 MB dan oshmasligi kerak.', 'error')
+    return redirect(request.referrer or url_for('tasks_list'))
 
 # Ensure tables exist when the app is imported by a WSGI server (e.g. gunicorn).
 with app.app_context():
@@ -325,6 +396,7 @@ def task_detail(task_id):
         return redirect(url_for('tasks_list'))
 
     comments = get_task_comments(task_id)
+    attachments = get_task_attachments(task_id)
 
     # Determine allowed status transitions
     can_start = is_assignee and task.status == 'Not Started'
@@ -335,10 +407,49 @@ def task_detail(task_id):
     can_delete = is_assignor or is_head
 
     return render_template('tasks/task_detail.html',
-                           task=task, comments=comments,
+                           task=task, comments=comments, attachments=attachments,
                            can_start=can_start, can_complete=can_complete,
                            can_approve=can_approve, can_reject=can_reject,
                            can_edit=can_edit, can_delete=can_delete)
+
+
+@app.route('/tasks/<int:task_id>/attachments/<int:attachment_id>')
+@login_required
+def task_attachment_download(task_id, attachment_id):
+    """Serve an attachment file. Reuses task_detail permission rules."""
+    user = g.current_user
+    task = get_task_by_id(task_id)
+    if task is None:
+        abort(404)
+
+    is_assignee = user.id in task.assignee_ids
+    is_assignor = user.id == task.assignor_id
+    is_requester = user.id == task.requester_id
+    is_head = user.role in ('Head', 'Deputy')
+    is_unit_head = user.role == 'HeadOfUnit'
+    if is_unit_head and not (is_assignee or is_assignor or is_requester):
+        conn = get_db()
+        in_unit = conn.execute(
+            """SELECT COUNT(*) FROM task_assignees ta
+               JOIN users u ON ta.user_id = u.id
+               WHERE ta.task_id = ? AND u.unit_id = ?""",
+            (task_id, user.unit_id),
+        ).fetchone()[0]
+        conn.close()
+        if not in_unit:
+            abort(403)
+    elif not (is_assignee or is_assignor or is_requester or is_head):
+        abort(403)
+
+    att = get_attachment(attachment_id)
+    if not att or att.task_id != task_id:
+        abort(404)
+
+    task_dir = os.path.join(UPLOAD_DIR, str(task_id))
+    return send_from_directory(
+        task_dir, att.stored_name,
+        as_attachment=True, download_name=att.original_name,
+    )
 
 
 @app.route('/tasks/<int:task_id>/status', methods=['POST'])
@@ -393,7 +504,7 @@ def task_update_status(task_id):
         approver = get_user_by_id(task.assignor_id)
         assignee_name = task.assignees[0].name if task.assignees else user.name
         if approver:
-            notify_pending_approval(approver, task, assignee_name)
+            notify_pending_approval(approver, task, assignee_name, completion_note=completion_note or None)
     elif new_status == 'Completed':
         for assignee in task.assignees:
             notify_status_changed(assignee, task, new_status)
@@ -422,6 +533,20 @@ def task_add_comment(task_id):
 
     add_comment(task_id, user.id, comment_text)
     log_activity(user.id, 'Added comment', 'Task', task_id)
+
+    # Notify participants except the commenter.
+    recipients = {}
+    for a in task.assignees:
+        if a.id != user.id and a.get('telegram_id'):
+            recipients[a.id] = a
+    for participant_id in (task.assignor_id, task.requester_id):
+        if participant_id and participant_id != user.id and participant_id not in recipients:
+            p = get_user_by_id(participant_id)
+            if p and p.get('telegram_id'):
+                recipients[participant_id] = p
+    if recipients:
+        notify_task_comment(list(recipients.values()), task, user.name, comment_text)
+
     return redirect(url_for('task_detail', task_id=task_id))
 
 
@@ -489,6 +614,9 @@ def task_create():
             deadline=deadline, assignee_ids=assignee_ids
         )
         log_activity(user.id, 'Created task', 'Task', new_id, title)
+        for status_, name_, reason in _save_uploads(new_id, request.files.getlist('attachments'), user.id):
+            if status_ == 'rejected':
+                flash(f'«{name_}» qabul qilinmadi: {reason}.', 'error')
         new_task = get_task_by_id(new_id)
         if new_task:
             notify_task_assigned(new_task.assignees, new_task, user.name)
@@ -557,6 +685,9 @@ def task_edit(task_id):
             deadline=deadline, assignee_ids=assignee_ids
         )
         log_activity(user.id, 'Updated task', 'Task', task_id, title)
+        for status_, name_, reason in _save_uploads(task_id, request.files.getlist('attachments'), user.id):
+            if status_ == 'rejected':
+                flash(f'«{name_}» qabul qilinmadi: {reason}.', 'error')
         updated = get_task_by_id(task_id)
         if updated:
             new_only = [a for a in updated.assignees if a.id not in previous_assignee_ids]
@@ -608,6 +739,9 @@ def self_request():
             deadline=deadline, assignee_ids=[user.id]
         )
         log_activity(user.id, 'Submitted self-request', 'Task', new_id, title)
+        for status_, name_, reason in _save_uploads(new_id, request.files.getlist('attachments'), user.id):
+            if status_ == 'rejected':
+                flash(f'«{name_}» qabul qilinmadi: {reason}.', 'error')
         new_task = get_task_by_id(new_id)
         verifier = get_user_by_id(verifier_id)
         if new_task and verifier:

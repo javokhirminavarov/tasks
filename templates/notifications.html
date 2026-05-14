@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Bildirishnomalar - TaskFlow{% endblock %}
+{% block title %}Bildirishnomalar - Topshiriqlar nazorati{% endblock %}
 
 {% block content %}
 <div class="px-4 pt-6 pb-8">
@@ -35,9 +35,9 @@
             <div class="flex-1 min-w-0">
                 <p class="text-sm text-gray-900 dark:text-white">
                     <span class="font-semibold">{{ item.user_name }}</span>
-                    <span class="text-gray-600 dark:text-gray-400">{{ item.action|lower }}</span>
+                    <span class="text-gray-600 dark:text-gray-400">{{ item.action|action_uz }}</span>
                     {% if item.details %}
-                    <span class="font-medium">{{ item.details }}</span>
+                    <span class="font-medium">«{{ item.details }}»</span>
                     {% endif %}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ item.timestamp|timeago }}</p>

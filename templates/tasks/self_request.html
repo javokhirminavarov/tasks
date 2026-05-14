@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Yangi so'rov - TaskFlow{% endblock %}
+{% block title %}Yangi so'rov - Topshiriqlar nazorati{% endblock %}
 
 {% block content %}
 <div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark">
@@ -36,7 +36,7 @@
     </div>
 
     <!-- Form Fields -->
-    <form id="self-request-form" method="POST" action="{{ url_for('self_request') }}">
+    <form id="self-request-form" method="POST" enctype="multipart/form-data" action="{{ url_for('self_request') }}">
         <div class="flex flex-col gap-6 px-4">
 
             <!-- Task Title -->
@@ -117,6 +117,21 @@
                 <p class="text-xs text-gray-400 px-1">Tanlangan rahbarga bildirishnoma yuboriladi.</p>
             </div>
 
+            <!-- Attachments -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Ilovalar (maks. 1 MB)</label>
+                <label for="self-attachments-input"
+                       class="w-full rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 p-4 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
+                    <span class="material-symbols-outlined text-primary">cloud_upload</span>
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Fayl tanlash</p>
+                    <p class="text-[11px] text-gray-400">Rasm, PDF yoki Office hujjat</p>
+                </label>
+                <input id="self-attachments-input" name="attachments" type="file" multiple
+                       accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,image/*,application/pdf"
+                       class="hidden" onchange="renderSelfAttachmentList()"/>
+                <ul id="self-attachments-list" class="flex flex-col gap-1 text-xs text-gray-600 dark:text-gray-300"></ul>
+            </div>
+
         </div>
     </form>
 </main>
@@ -152,5 +167,19 @@ document.querySelectorAll('.priority-btn').forEach(function(btn) {
         active.split(' ').forEach(function(c) { btn.classList.add(c); });
     });
 });
+
+function renderSelfAttachmentList() {
+    const input = document.getElementById('self-attachments-input');
+    const list = document.getElementById('self-attachments-list');
+    list.innerHTML = '';
+    Array.from(input.files).forEach(function(f) {
+        const li = document.createElement('li');
+        const kb = (f.size / 1024).toFixed(0);
+        const tooBig = f.size > 1024 * 1024;
+        li.className = 'flex items-center gap-2 ' + (tooBig ? 'text-red-600 dark:text-red-400' : '');
+        li.textContent = '• ' + f.name + ' (' + kb + ' KB)' + (tooBig ? ' — 1 MB dan oshib ketdi' : '');
+        list.appendChild(li);
+    });
+}
 </script>
 {% endblock %}

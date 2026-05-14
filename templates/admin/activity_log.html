@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Faoliyat jurnali - TaskFlow{% endblock %}
+{% block title %}Faoliyat jurnali - Topshiriqlar nazorati{% endblock %}
 
 {% block content %}
 <div class="px-4 pt-6 pb-8">
@@ -22,7 +22,7 @@
             <div class="flex-1 min-w-0">
                 <p class="text-sm text-gray-900 dark:text-white">
                     <span class="font-semibold">{{ entry.user_name }}</span>
-                    <span class="text-gray-600 dark:text-gray-400">{{ entry.action|lower }}</span>
+                    <span class="text-gray-600 dark:text-gray-400">{{ entry.action|action_uz }}</span>
                 </p>
                 {% if entry.details %}
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{{ entry.details }}</p>
