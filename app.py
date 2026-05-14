@@ -3,6 +3,7 @@ import math
 from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, url_for, session, g, flash, jsonify
 from models import (get_user_by_id, get_user_by_telegram_id, get_user_by_telegram_id_any,
+                    bootstrap_admin_from_env,
                     get_dashboard_stats,
                     get_team_workload, get_unit_performance,
                     get_my_tasks, get_my_task_stats, get_overdue_count_for_filter,
@@ -27,6 +28,7 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN', '')
 # Ensure tables exist when the app is imported by a WSGI server (e.g. gunicorn).
 with app.app_context():
     init_db()
+    bootstrap_admin_from_env()
 
 
 # --- Before Request / Context Processor ---

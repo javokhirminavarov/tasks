@@ -105,6 +105,50 @@ def init_db():
     conn.close()
 
 
+def bootstrap_admin_from_env():
+    """Create or promote an admin user from BOOTSTRAP_ADMIN_TELEGRAM_ID.
+
+    On every startup: if the env var is set, ensure a user with that
+    telegram_id exists and has is_admin=1 and active=1. Safe to call on every
+    startup; does nothing without the env var.
+    """
+    telegram_id = os.environ.get('BOOTSTRAP_ADMIN_TELEGRAM_ID', '').strip()
+    if not telegram_id:
+        print('[bootstrap_admin] BOOTSTRAP_ADMIN_TELEGRAM_ID not set, skipping', flush=True)
+        return
+
+    name = os.environ.get('BOOTSTRAP_ADMIN_NAME', 'Admin').strip() or 'Admin'
+
+    conn = get_db()
+    existing_user = conn.execute(
+        "SELECT id, is_admin, active FROM users WHERE telegram_id = ?",
+        (telegram_id,),
+    ).fetchone()
+    if existing_user:
+        conn.execute(
+            "UPDATE users SET is_admin = 1, active = 1 WHERE id = ?",
+            (existing_user['id'],),
+        )
+        print(
+            f'[bootstrap_admin] promoted existing user id={existing_user["id"]} '
+            f'telegram_id={telegram_id} to admin',
+            flush=True,
+        )
+    else:
+        cur = conn.execute(
+            "INSERT INTO users (name, role, telegram_id, is_admin, active) "
+            "VALUES (?, 'Head', ?, 1, 1)",
+            (name, telegram_id),
+        )
+        print(
+            f'[bootstrap_admin] created admin id={cur.lastrowid} '
+            f'name={name!r} telegram_id={telegram_id}',
+            flush=True,
+        )
+    conn.commit()
+    conn.close()
+
+
 def _row_to_dict(row):
     """Convert a sqlite3.Row to a dict for dot-notation access via Jinja."""
     if row is None:
