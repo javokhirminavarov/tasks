@@ -276,7 +276,7 @@
 <div id="complete-modal" class="hidden fixed inset-0 z-[100] flex items-end justify-center">
     <div class="absolute inset-0 bg-black/50" onclick="document.getElementById('complete-modal').classList.add('hidden')"></div>
     <div class="relative w-full max-w-md bg-white dark:bg-[#1a2230] rounded-t-2xl p-6 pb-8 animate-slide-up">
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Submit for Approval</h3>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Tasdiqlash uchun yuborish</h3>
         <form method="POST" action="{{ url_for('task_update_status', task_id=task.id) }}">
             <input type="hidden" name="status" value="Pending Approval"/>
             <textarea name="completion_note" placeholder="Bajarish izohini qo'shing (ixtiyoriy)..."
@@ -305,7 +305,7 @@
         <div class="flex gap-3">
             <button onclick="document.getElementById('delete-modal').classList.add('hidden')"
                     class="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-bold">
-                Cancel
+                Bekor qilish
             </button>
             <form method="POST" action="{{ url_for('task_delete', task_id=task.id) }}" class="flex-1">
                 <button type="submit" class="w-full h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold shadow-sm">

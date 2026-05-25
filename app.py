@@ -152,18 +152,19 @@ def timeago_filter(timestamp_str):
     diff = now - dt
     seconds = diff.total_seconds()
     if seconds < 60:
-        return 'Just now'
+        return 'Hozirgina'
     elif seconds < 3600:
         mins = int(seconds // 60)
-        return f'{mins}m ago'
+        return f'{mins} daqiqa oldin'
     elif seconds < 86400:
         hours = int(seconds // 3600)
-        return f'{hours}h ago'
+        return f'{hours} soat oldin'
     elif seconds < 604800:
         days = int(seconds // 86400)
-        return f'{days}d ago'
+        return f'{days} kun oldin'
     else:
-        return dt.strftime('%b %d, %Y')
+        oylar = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
+        return f'{dt.day} {oylar[dt.month - 1]}, {dt.year}'
 
 
 # --- Auth Routes ---
@@ -592,15 +593,15 @@ def task_create():
 
         errors = []
         if not title:
-            errors.append('Task title is required.')
+            errors.append('Vazifa sarlavhasi kiritilishi shart.')
         if not deadline:
-            errors.append('Deadline is required.')
+            errors.append('Muddat kiritilishi shart.')
         if not assignee_ids:
-            errors.append('At least one assignee is required.')
+            errors.append('Kamida bitta bajaruvchi tanlanishi kerak.')
 
         # HeadOfUnit cannot assign tasks to themselves
         if user.role == 'HeadOfUnit' and user.id in assignee_ids:
-            errors.append('You cannot assign tasks to yourself. Use "Request Task" to create a task for yourself.')
+            errors.append('O\'zingizga vazifa biriktira olmaysiz. O\'zingiz uchun vazifa yaratish uchun "Vazifa so\'rash" funksiyasidan foydalaning.')
 
         if errors:
             for e in errors:
@@ -667,11 +668,11 @@ def task_edit(task_id):
 
         errors = []
         if not title:
-            errors.append('Task title is required.')
+            errors.append('Vazifa sarlavhasi kiritilishi shart.')
         if not deadline:
-            errors.append('Deadline is required.')
+            errors.append('Muddat kiritilishi shart.')
         if not assignee_ids:
-            errors.append('At least one assignee is required.')
+            errors.append('Kamida bitta bajaruvchi tanlanishi kerak.')
 
         if errors:
             for e in errors:
@@ -721,11 +722,11 @@ def self_request():
 
         errors = []
         if not title:
-            errors.append('Task title is required.')
+            errors.append('Vazifa sarlavhasi kiritilishi shart.')
         if not deadline:
-            errors.append('Deadline is required.')
+            errors.append('Muddat kiritilishi shart.')
         if not verifier_id:
-            errors.append('A verifier must be selected.')
+            errors.append('Tasdiqlovchi tanlanishi kerak.')
 
         if errors:
             for e in errors:
